@@ -4,15 +4,16 @@ CREATE DATABASE IF NOT EXISTS nyamnyam;
 USE nyamnyam;
 -- MySQL 기준 SQL 문 (Google 로그인 반영, ENUM 타입, 수정된 FK, 컬럼 제약조건 수정, MealLog.img_url 추가)
 
--- 사용자 정보 테이블 (Google OAuth2 기반)
+-- 사용자 정보 테이블 (password 삭제, role 변경, profile_image_url 추가)
 CREATE TABLE User (
-                      user_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '사용자 고유 내부 PK ID',
-                      google_id VARCHAR(255) NOT NULL UNIQUE COMMENT 'Google 사용자 고유 ID (sub)',
-                      email VARCHAR(255) UNIQUE COMMENT '사용자 이메일 (Google 제공)',
-                      nickname VARCHAR(50) NOT NULL UNIQUE COMMENT '사용자 닉네임 (Unique)',
-                      role ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER' COMMENT '사용자 권한',
-                      password VARCHAR(255) NULL COMMENT '비밀번호 (향후 다른 로그인 방식 또는 관리자용)',
-                      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입 일시'
+    user_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '사용자 고유 내부 PK ID',
+    google_id VARCHAR(255) NOT NULL UNIQUE COMMENT 'Google 사용자 고유 ID (sub)',
+    email VARCHAR(255) UNIQUE COMMENT '사용자 이메일 (Google 제공, Null 허용)',
+    nickname VARCHAR(50) NOT NULL COMMENT '사용자 닉네임 (Unique)',
+    role VARCHAR(20) NOT NULL DEFAULT 'ROLE_USER' COMMENT '사용자 권한 (String 타입, 예: ROLE_USER, ROLE_ADMIN)',
+    profile_image_url VARCHAR(512) NULL COMMENT '사용자 프로필 이미지 URL', -- 추가됨
+    -- password 컬럼 삭제됨
+    create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입 일시'
 ) ENGINE=InnoDB COMMENT '사용자 정보';
 
 -- 음식 영양 정보 테이블 (컬럼 제약조건 수정됨)

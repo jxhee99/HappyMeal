@@ -5,7 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("com.ssafy.happymeal.domain.user.dao")
+//@MapperScan("com.ssafy.happymeal.domain.user.dao")
 public class HappyMealApplication {
 
 	public static void main(String[] args) {

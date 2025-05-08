@@ -33,19 +33,23 @@ CREATE TABLE Food (
                       update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '정보 수정 일시'
 ) ENGINE=InnoDB COMMENT '음식 영양 정보';
 
--- 사용자 음식 등록 요청 테이블 (컬럼 제약조건 수정됨)
+-- 수정된 버전
 CREATE TABLE FoodRequest (
                              food_request_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '음식 요청 고유 PK ID',
-                             name VARCHAR(100) NOT NULL COMMENT '요청 음식 이름',
-                             calories DECIMAL(10, 2) NOT NULL DEFAULT 0,
-                             protein DECIMAL(10, 2) NOT NULL DEFAULT 0,
-                             carbs DECIMAL(10, 2) NOT NULL DEFAULT 0,
-                             fat DECIMAL(10, 2) NOT NULL DEFAULT 0,
-                             serving_size DECIMAL(10, 2) NOT NULL DEFAULT 0,
-                             unit VARCHAR(10) NOT NULL DEFAULT '',
-                             is_registered ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING' COMMENT '등록 처리 여부',
                              user_id BIGINT NOT NULL COMMENT '요청 사용자 ID (User 테이블 PK 참조)',
+                             name VARCHAR(100) NOT NULL COMMENT '요청 음식 이름',
+                             category VARCHAR(20) NULL COMMENT '요청 음식 분류 (선택 사항, 관리자 최종 결정 가능)', -- 선택적 추가
+                             serving_size DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '1회 제공량',
+                             unit VARCHAR(10) NOT NULL DEFAULT '' COMMENT '단위 (예: g, ml, 개)',
+                             calories DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '칼로리',
+                             carbs DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '탄수화물 (g)',
+                             sugar DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '당류 (g)', -- 필수 추가 제안
+                             protein DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '단백질 (g)',
+                             fat DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '지방 (g)',
+                             is_registered ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING' COMMENT '등록 처리 여부',
+    -- admin_comment TEXT NULL COMMENT '관리자 의견 또는 거절 사유 (선택적 추가)',
                              create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '요청 생성 일시',
+    -- update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '요청 수정 일시 (선택적 추가)',
                              FOREIGN KEY (user_id) REFERENCES User(user_id)
                                  ON DELETE CASCADE
                                  ON UPDATE CASCADE

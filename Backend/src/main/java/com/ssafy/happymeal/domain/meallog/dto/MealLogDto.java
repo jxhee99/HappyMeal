@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
+// 식단 기록 저장용 DTO
 public class MealLogDto {
     private String mealDate; // 타입 : LocalDate
     private String mealType;

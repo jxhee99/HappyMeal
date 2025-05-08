@@ -19,7 +19,7 @@ public interface UserDAO {
             "from User " +
             "where user_id=#{userId}"
     )
-    Optional<User> findById(String userId);
+    Optional<User> findById(Long userId);
 
     // User 정보 저장
     @Insert("insert into User(google_id, email, nickname, role, profile_image_url, create_at)"

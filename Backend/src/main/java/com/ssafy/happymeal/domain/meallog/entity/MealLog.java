@@ -21,6 +21,4 @@ public class MealLog {
     private BigDecimal quantity;
     private String imgUrl;
     private Timestamp createAt;
-
-
 }

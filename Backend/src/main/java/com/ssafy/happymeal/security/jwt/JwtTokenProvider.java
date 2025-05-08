@@ -72,17 +72,39 @@ public class JwtTokenProvider {
      * 인증 정보를 기반으로 Access Token을 생성합니다.
      * (이하 메소드들은 이전과 동일)
      */
+//    public String generateAccessToken(Long userId, String role) {
+//        long now = (new Date()).getTime();
+//        Date validity = new Date(now + this.accessTokenValidityInMilliseconds);
+//
+//        return Jwts.builder()
+//                .setSubject(String.valueOf(userId))
+//                .claim(AUTHORITIES_KEY, role)
+//                .setIssuedAt(new Date(now))
+//                .setExpiration(validity)
+//                .signWith(key, SignatureAlgorithm.HS512)
+//                .compact();
+//    }
+
+    // postman 요청 시 접근 권한 확인 위한 token 로그 출력
     public String generateAccessToken(Long userId, String role) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + this.accessTokenValidityInMilliseconds);
 
-        return Jwts.builder()
+        String token = Jwts.builder()
                 .setSubject(String.valueOf(userId))
-                .claim(AUTHORITIES_KEY, role)
+//                .claim(AUTHORITIES_KEY, role)
+                /*  fix : Spring Security에서 .hasAnyRole("USER") 같은 메서드를 사용할 예정이라면
+                "ROLE_USER" 형태여야 정상 동작하기 때문에 "ROLE_"을 강제로 명시 */
+                .claim(AUTHORITIES_KEY, "ROLE_"+role)
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
+
+        // 로그로 출력!
+        log.info("Generated JWT access token for userId {}: {}", userId, token);
+
+        return token;
     }
 
     /**
@@ -106,6 +128,10 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String accessToken) {
         Claims claims = parseClaims(accessToken);
 
+        // 식제 할 것
+//        log.info("🔐 JWT subject (userId): {}", claims.getSubject());
+//        log.info("🔐 JWT role: {}", claims.get("auth"));
+
         if (claims.get(AUTHORITIES_KEY) == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
@@ -115,6 +141,7 @@ public class JwtTokenProvider {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
+        // 이 부분에서 UserDetails 구현체에 "username" 역할로 userId가 들어감
         UserDetails principal = new User(claims.getSubject(), "", authorities);
 
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);

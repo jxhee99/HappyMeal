@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 "/api/food-requests", // 음식 요청 (POST)
                                 "/api/board" // 게시글 작성(POST), 수정(PUT), 삭제(DELETE) - 세부 검증은 컨트롤러/서비스에서
                         ).hasAnyRole("USER", "ADMIN") // USER 또는 ADMIN 역할 필요
+//                        ).hasAuthority("USER") // JWT에 "USER"라고 넣었을 때만 일치
 
                         // 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()

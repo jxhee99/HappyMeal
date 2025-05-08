@@ -6,28 +6,31 @@ USE nyamnyam;
 
 -- 사용자 정보 테이블 (password 삭제, role 변경, profile_image_url 추가)
 CREATE TABLE User (
-    user_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '사용자 고유 내부 PK ID',
-    google_id VARCHAR(255) NOT NULL UNIQUE COMMENT 'Google 사용자 고유 ID (sub)',
-    email VARCHAR(255) UNIQUE COMMENT '사용자 이메일 (Google 제공, Null 허용)',
-    nickname VARCHAR(50) NOT NULL COMMENT '사용자 닉네임 (Unique)',
-    role VARCHAR(20) NOT NULL DEFAULT 'ROLE_USER' COMMENT '사용자 권한 (String 타입, 예: ROLE_USER, ROLE_ADMIN)',
-    profile_image_url VARCHAR(512) NULL COMMENT '사용자 프로필 이미지 URL', -- 추가됨
+                      user_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '사용자 고유 내부 PK ID',
+                      google_id VARCHAR(255) NOT NULL UNIQUE COMMENT 'Google 사용자 고유 ID (sub)',
+                      email VARCHAR(255) UNIQUE COMMENT '사용자 이메일 (Google 제공, Null 허용)',
+                      nickname VARCHAR(50) NOT NULL COMMENT '사용자 닉네임 (Unique)',
+                      role VARCHAR(20) NOT NULL DEFAULT 'ROLE_USER' COMMENT '사용자 권한 (String 타입, 예: ROLE_USER, ROLE_ADMIN)',
+                      profile_image_url VARCHAR(512) NULL COMMENT '사용자 프로필 이미지 URL', -- 추가됨
     -- password 컬럼 삭제됨
-    create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입 일시'
+                      create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '가입 일시'
 ) ENGINE=InnoDB COMMENT '사용자 정보';
 
 -- 음식 영양 정보 테이블 (컬럼 제약조건 수정됨)
 CREATE TABLE Food (
                       food_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '음식 고유 PK ID',
                       name VARCHAR(100) NOT NULL COMMENT '음식 이름',
-                      calories DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '칼로리 (100g 기준)',
-                      protein DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '단백질 (g, 100g 기준)',
-                      carbs DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '탄수화물 (g, 100g 기준)',
-                      fat DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '지방 (g, 100g 기준)',
+                      category VARCHAR(20) NOT NULL COMMENT '음식 분류',
                       serving_size DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '1회 제공량',
                       unit VARCHAR(10) NOT NULL DEFAULT '' COMMENT '단위 (예: g, ml, 개)',
-                      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '정보 생성 일시',
-                      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '정보 수정 일시'
+                      calories DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '칼로리 (100g 기준)',
+                      carbs DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '탄수화물 (g, 100g 기준)',
+                      sugar DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '당류 (g, 100g 기준)',
+                      protein DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '단백질 (g, 100g 기준)',
+                      fat DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '지방 (g, 100g 기준)',
+                      food_code VARCHAR(100) NULL COMMENT '음식 고유 코드',
+                      create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '정보 생성 일시',
+                      update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '정보 수정 일시'
 ) ENGINE=InnoDB COMMENT '음식 영양 정보';
 
 -- 사용자 음식 등록 요청 테이블 (컬럼 제약조건 수정됨)
@@ -42,7 +45,7 @@ CREATE TABLE FoodRequest (
                              unit VARCHAR(10) NOT NULL DEFAULT '',
                              is_registered ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING' COMMENT '등록 처리 여부',
                              user_id BIGINT NOT NULL COMMENT '요청 사용자 ID (User 테이블 PK 참조)',
-                             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '요청 생성 일시',
+                             create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '요청 생성 일시',
                              FOREIGN KEY (user_id) REFERENCES User(user_id)
                                  ON DELETE CASCADE
                                  ON UPDATE CASCADE
@@ -57,7 +60,7 @@ CREATE TABLE MealLog (
                          meal_type ENUM('BREAKFAST', 'LUNCH', 'DINNER', 'SNACK') NOT NULL COMMENT '식사 종류',
                          quantity DECIMAL(10, 2) NOT NULL COMMENT '섭취량 (g 단위)',
                          img_url VARCHAR(512) NULL COMMENT '식단 사진 이미지 URL', -- 추가됨
-                         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '기록 생성 일시',
+                         create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '기록 생성 일시',
                          FOREIGN KEY (user_id) REFERENCES User(user_id)
                              ON DELETE CASCADE
                              ON UPDATE CASCADE,
@@ -72,9 +75,12 @@ CREATE TABLE Board (
                        user_id BIGINT NOT NULL COMMENT '작성자 ID (User 테이블 PK 참조)',
                        title VARCHAR(255) NOT NULL COMMENT '게시글 제목',
                        content TEXT NOT NULL COMMENT '게시글 내용',
-                       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성 일시',
-                       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
+                       create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성 일시',
+                       update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
                        FOREIGN KEY (user_id) REFERENCES User(user_id)
                            ON DELETE CASCADE
                            ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT '커뮤니티 게시판';
+
+
+select * from food;

@@ -23,14 +23,18 @@ public interface MealLogDAO {
     void insertMealLog(MealLog mealLog);
 
     @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, img_url AS imgUrl, " +
-            "m.meal_type AS mealType, m.quantity, f.calories, f.carbs, f.sugar, f.protein, f.fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
+            "m.meal_type AS mealType, m.quantity, " +
+            "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
+            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id = #{userId}")
     List<MealLogResponseDto> getAllMealLogs(Long userId);
 
     @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, img_url AS imgUrl, " +
-            "m.meal_type AS mealType, m.quantity, f.calories, f.carbs, f.sugar, f.protein, f.fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
+            "m.meal_type AS mealType, m.quantity, " +
+            "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
+            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id = #{userId} AND m.meal_date = #{mealDate}")
@@ -43,8 +47,8 @@ public interface MealLogDAO {
     void deleteMealLog(Long userId, Long logId);
 
 
-    @Select("Select sum(f.calories) AS totalCalories, sum(f.carbs) AS totalCarbs, " +
-            "sum(f.sugar) AS totalSugar, sum(f.protein) AS totalProtein, sum(f.fat) AS totalFat " +
+    @Select("Select sum(f.calories*m.quantity/100) AS totalCalories, sum(f.carbs*m.quantity/100) AS totalCarbs, " +
+            "sum(f.sugar*m.quantity/100) AS totalSugar, sum(f.protein*m.quantity/100) AS totalProtein, sum(f.fat*m.quantity/100) AS totalFat " +
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id=#{userId} AND m.meal_date=#{mealDate}")

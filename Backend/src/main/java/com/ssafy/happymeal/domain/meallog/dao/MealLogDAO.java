@@ -22,13 +22,15 @@ public interface MealLogDAO {
             " Values(#{userId}, #{foodId}, #{mealDate}, #{mealType}, #{quantity}, #{imgUrl}, NOW())")
     void insertMealLog(MealLog mealLog);
 
-    @Select("Select m.log_id AS logId, f.name AS foodName, img_url AS imgUrl, m.meal_type AS mealType, f.calories " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
+    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, img_url AS imgUrl, " +
+            "m.meal_type AS mealType, m.quantity, f.calories, f.carbs, f.sugar, f.protein, f.fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id = #{userId}")
     List<MealLogResponseDto> getAllMealLogs(Long userId);
 
-    @Select("Select m.log_id AS logId, f.name AS foodName, img_url AS imgUrl, m.meal_type AS mealType, f.calories " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
+    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, img_url AS imgUrl, " +
+            "m.meal_type AS mealType, m.quantity, f.calories, f.carbs, f.sugar, f.protein, f.fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id = #{userId} AND m.meal_date = #{mealDate}")

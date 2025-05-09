@@ -13,7 +13,14 @@ import java.math.BigDecimal;
 public class MealLogResponseDto {
     private Long logId;
     private String foodName; // 조회 시 음식 반환을 위해 사용
+    private Long foodId;
     private String imgUrl;
     private String mealType;
+    private BigDecimal quantity;
     private BigDecimal calories;
+    private BigDecimal carbs;
+    private BigDecimal sugar;
+    private BigDecimal protein;
+    private BigDecimal fat;
+
 }

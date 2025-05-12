@@ -85,10 +85,7 @@ CREATE TABLE Board (
                        views INT DEFAULT 0 COMMENT '조회수',
                        likes_count INT DEFAULT 0 COMMENT '좋아요 수',
                        CONSTRAINT fk_board_user_id FOREIGN KEY (user_id) REFERENCES User(user_id)
-                           ON DELETE CASCADE, -- 사용자가 삭제되면 게시글도 삭제
-                       CONSTRAINT fk_board_category_id FOREIGN KEY (category_id) REFERENCES BoardCategory(category_id)
-                           ON DELETE SET NULL -- 카테고리가 삭제되면 해당 게시글의 카테고리 정보는 NULL로 설정 (또는 RESTRICT)
-                           ON UPDATE CASCADE
+                           ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT '커뮤니티 게시판';
 
 - - 게시글 콘텐츠 블록 테이블

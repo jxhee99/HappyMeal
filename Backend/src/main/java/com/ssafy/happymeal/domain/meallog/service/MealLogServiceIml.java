@@ -7,6 +7,7 @@ import com.ssafy.happymeal.domain.meallog.dto.MealLogStatsDto;
 import com.ssafy.happymeal.domain.meallog.entity.MealLog;
 import com.ssafy.happymeal.domain.user.dao.UserDAO;
 import com.ssafy.happymeal.global.exception.ForbiddenException;
+import com.ssafy.happymeal.global.exception.NoMealLogFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.javassist.NotFoundException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -23,6 +25,7 @@ public class MealLogServiceIml implements MealLogService{
     private final MealLogDAO mealLogDAO;
     private final UserDAO userDAO;
 
+    /* 식단 기록 추가 */
     @Override
     public void addMealLog(Long userId, MealLogDto mealLogDto) {
         MealLog mealLog = new MealLog();
@@ -37,31 +40,59 @@ public class MealLogServiceIml implements MealLogService{
         mealLogDAO.insertMealLog(mealLog);
     }
 
+    /* 전체 식단 기록 조회 */
+    @Override
+    public List<MealLogResponseDto> getAllMealLogs(Long userId) {
+        return mealLogDAO.getAllMealLogs(userId);
+    }
+
+    /* 특정 날짜 식단 기록 조회 */
     @Override
     public List<MealLogResponseDto> findByUserAndDate(Long userId, LocalDate mealDate) {
+        int count = mealLogDAO.findByDate(mealDate);
+        if(count==0) {
+            throw new NoMealLogFoundException("해당 날짜("+mealDate+")애 대한 식단 기록이 존재하지 않습니다.");
+        }
         return mealLogDAO.findByUserAndDate(userId, mealDate);
     }
 
+    /* 특정 날짜 식단 통계 조회 */
+    @Override
+    public MealLogStatsDto getDailyMealStats(Long userId, LocalDate mealDate) {
+        int count = mealLogDAO.findByDate(mealDate);
+        if(count==0) {
+            throw new NoMealLogFoundException("해당 날짜("+mealDate+")애 대한 식단 기록이 존재하지 않습니다.");
+        }
+        return mealLogDAO.getDailyMealStats(userId, mealDate);
+    }
+
+    /* 식단 기록 상세 조회 */
+    @Override
+    public MealLogResponseDto getDetailMealLog(Long userId, Long logId) {
+        // 일치하는 식단 기록이 없을 경우
+        MealLog mealLog = mealLogDAO.findById(logId)
+                .orElseThrow(() -> new NoMealLogFoundException("logId={"+logId+"}와/과 일치하는 식단 기록이 존재하지 않습니다."));
+
+        // 일치하는 사용자가 아닌 경우
+//        if(!mealLog.getUserId().equals(userId)) {
+//            throw new ForbiddenException("본인의 기록만 조회할 수 있습니다.");
+//        }
+
+        return mealLogDAO.getDetailMealLog(userId, logId);
+    }
+
+
+    /* 식단 기록 삭제 */
     @Override
     public void deleteMealLog(Long userId, Long logId) throws NotFoundException {
         // 일치하는 식단 기록이 없을 경우
         MealLog mealLog = mealLogDAO.findById(logId)
-                .orElseThrow(() -> new NotFoundException("식단 기록이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoMealLogFoundException("logId={"+logId+"}와/과 일치하는 식단 기록이 존재하지 않습니다."));
 
         // 일치하는 사용자가 아닌 경우
-        if(!mealLog.getUserId().equals(userId)) {
-            throw new ForbiddenException("본인의 기록만 삭제할 수 있습니다.");
-        }
+//        if(!mealLog.getUserId().equals(userId)) {
+//            throw new ForbiddenException("본인의 기록만 삭제할 수 있습니다.");
+//        }
         mealLogDAO.deleteMealLog(userId, logId);
-    }
-
-    @Override
-    public MealLogStatsDto getDailyMealStats(Long userId, LocalDate mealDate) {
-        return mealLogDAO.getDailyMealStats(userId, mealDate);
-    }
-
-    @Override
-    public List<MealLogResponseDto> getAllMealLogs(Long userId) {
-        return mealLogDAO.getAllMealLogs(userId);
     }
 }

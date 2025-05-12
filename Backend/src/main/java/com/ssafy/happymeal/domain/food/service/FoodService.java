@@ -49,4 +49,8 @@ public interface FoodService {
      * @throws jakarta.persistence.EntityNotFoundException 해당 ID의 음식이 없을 경우 (삭제 시도 전에 확인)
      */
     void deleteFood(Long foodId);
+
+    List<Food> getRecommendedFoods(String categoryName); // 반환 타입 변경
+
+
 }

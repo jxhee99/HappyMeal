@@ -21,7 +21,7 @@ public class AdminController {
     /**
      * 음식 정보 추가
      * POST /api/v1/foods
-     * 접근 권한: User, Admin (요구사항에 명시됨 - 실제 권한 처리는 Spring Security 등 필요)
+     * 접근 권한: Admin (요구사항에 명시됨 - 실제 권한 처리는 Spring Security 등 필요)
      */
     @PostMapping("/foods")
     // @PreAuthorize("hasAnyRole('USER', 'ADMIN')") // Spring Security 사용 시 권한 예시
@@ -36,7 +36,7 @@ public class AdminController {
     /**
      * 음식 정보 수정
      * PUT /api/v1/foods/{foodId}
-     * 접근 권한: User, Admin (요구사항에 명시됨 - 실제 권한 처리는 Spring Security 등 필요)
+     * 접근 권한: Admin (요구사항에 명시됨 - 실제 권한 처리는 Spring Security 등 필요)
      */
     @PutMapping("/foods/{foodId}")
     // @PreAuthorize("hasAnyRole('USER', 'ADMIN')") // Spring Security 사용 시 권한 예시
@@ -51,7 +51,7 @@ public class AdminController {
     /**
      * 음식 정보 삭제
      * DELETE /api/v1/foods/{foodId}
-     * 접근 권한: User, Admin (요구사항에 명시됨 - 실제 권한 처리는 Spring Security 등 필요)
+     * 접근 권한: Admin (요구사항에 명시됨 - 실제 권한 처리는 Spring Security 등 필요)
      */
     @DeleteMapping("/foods/{foodId}")
     // @PreAuthorize("hasAnyRole('USER', 'ADMIN')") // Spring Security 사용 시 권한 예시

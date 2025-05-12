@@ -25,6 +25,7 @@ public class Food {
     private BigDecimal sugar;
     private BigDecimal protein;
     private BigDecimal fat;
+    private String imgUrl;
     private String foodCode;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;

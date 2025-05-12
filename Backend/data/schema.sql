@@ -28,6 +28,7 @@ CREATE TABLE Food (
                       sugar DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '당류 (g, 100g 기준)',
                       protein DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '단백질 (g, 100g 기준)',
                       fat DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '지방 (g, 100g 기준)',
+                      img_url VARCHAR(512) NULL COMMENT '음식 대표 이미지 URL', -- << 컬럼 추가됨
                       food_code VARCHAR(100) NULL COMMENT '음식 고유 코드',
                       create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '정보 생성 일시',
                       update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '정보 수정 일시'

@@ -27,6 +27,7 @@ public class FoodDto {
     private BigDecimal sugar;
     private BigDecimal protein;
     private BigDecimal fat;
+    private String imgUrl;
     private String foodCode;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
@@ -44,6 +45,7 @@ public class FoodDto {
                 .sugar(entity.getSugar())
                 .protein(entity.getProtein())
                 .fat(entity.getFat())
+                .imgUrl(entity.getImgUrl())
                 .foodCode(entity.getFoodCode())
                 .createAt(entity.getCreateAt())
                 .updateAt(entity.getUpdateAt())
@@ -63,6 +65,7 @@ public class FoodDto {
         food.setSugar(this.sugar);
         food.setProtein(this.protein);
         food.setFat(this.fat);
+        food.setImgUrl(this.imgUrl);
         food.setFoodCode(this.foodCode);
         // createAt, updateAt은 DB에서 자동 관리되므로 여기서 설정하지 않는 것이 일반적입니다.
         return food;

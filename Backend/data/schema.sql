@@ -76,18 +76,6 @@ CREATE TABLE MealLog (
 
 -- 커뮤니티 게시판 테이블
 CREATE TABLE Board (
-                       post_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '게시글 고유 PK ID',
-                       user_id BIGINT NOT NULL COMMENT '작성자 ID (User 테이블 PK 참조)',
-                       title VARCHAR(255) NOT NULL COMMENT '게시글 제목',
-                       content TEXT NOT NULL COMMENT '게시글 내용',
-                       create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '작성 일시',
-                       update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 일시',
-                       FOREIGN KEY (user_id) REFERENCES User(user_id)
-                           ON DELETE CASCADE
-                           ON UPDATE CASCADE
-) ENGINE=InnoDB COMMENT '커뮤니티 게시판';
-
-CREATE TABLE Board (
                        post_id INT AUTO_INCREMENT PRIMARY KEY,
                        user_id INT NOT NULL,
                        category_id INT NULL, -- Nullable

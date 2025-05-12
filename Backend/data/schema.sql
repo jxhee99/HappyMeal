@@ -74,36 +74,38 @@ CREATE TABLE MealLog (
                              ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT '사용자 식사 기록';
 
--- 커뮤니티 게시판 테이블
+- - 커뮤니티 게시판 테이블
 CREATE TABLE Board (
-                       post_id INT AUTO_INCREMENT PRIMARY KEY,
-                       user_id INT NOT NULL,
-                       category_id INT NULL, -- Nullable
-                       title VARCHAR(255) NOT NULL,
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                       views INT DEFAULT 0,
-                       likes_count INT DEFAULT 0, -- '좋아요 수 등'을 likes_count로 가정하여 추가
-                       CONSTRAINT fk_posts_user FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE, -- 사용자가 삭제되면 게시글도 삭제 (또는 ON DELETE RESTRICT/SET NULL 등 정책에 따라 변경)
-                       CONSTRAINT fk_posts_category FOREIGN KEY (category_id) REFERENCES Categories(category_id) ON DELETE SET NULL -- 카테고리가 삭제되면 해당 게시글의 카테고리 ID를 NULL로 설정
-);
+                       board_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '게시글 고유 ID',
+                       user_id BIGINT NOT NULL COMMENT '작성자 ID (User 테이블 PK 참조)', -- BIGINT로 수정
+                       category_id INT NULL COMMENT '카테고리 ID (BoardCategory 테이블 PK 참조)', -- BoardCategory 테이블 참조
+                       title VARCHAR(255) NOT NULL COMMENT '게시글 제목',
+                       create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '게시글 생성 일시',
+                       update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '게시글 수정 일시',
+                       views INT DEFAULT 0 COMMENT '조회수',
+                       likes_count INT DEFAULT 0 COMMENT '좋아요 수',
+                       CONSTRAINT fk_board_user_id FOREIGN KEY (user_id) REFERENCES User(user_id)
+                           ON DELETE CASCADE, -- 사용자가 삭제되면 게시글도 삭제
+                       CONSTRAINT fk_board_category_id FOREIGN KEY (category_id) REFERENCES BoardCategory(category_id)
+                           ON DELETE SET NULL -- 카테고리가 삭제되면 해당 게시글의 카테고리 정보는 NULL로 설정 (또는 RESTRICT)
+                           ON UPDATE CASCADE
+) ENGINE=InnoDB COMMENT '커뮤니티 게시판';
 
--- Post_Content_Blocks (또는 Article_Elements) 테이블
+- - 게시글 콘텐츠 블록 테이블
 CREATE TABLE Block (
-                                     block_id INT AUTO_INCREMENT PRIMARY KEY,
-                                     post_id INT NOT NULL,
-                                     order_index INT NOT NULL, -- 게시글 내 블록 순서
-                                     block_type VARCHAR(50) NOT NULL, -- 'text', 'image', 'video' 등. ENUM 대신 VARCHAR 사용
-                                     content_text TEXT NULL, -- 블록 유형이 'text'인 경우
-                                     image_url VARCHAR(2083) NULL, -- 블록 유형이 'image'인 경우, URL 최대 길이 고려 (또는 더 길게)
-                                     image_caption VARCHAR(255) NULL, -- 이미지 캡션
-                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-                                     CONSTRAINT fk_blocks_post FOREIGN KEY (post_id) REFERENCES Posts(post_id) ON DELETE CASCADE, -- 게시글이 삭제되면 해당 블록들도 모두 삭제
-                                     INDEX idx_post_order (post_id, order_index) -- 특정 게시물의 콘텐츠 블록을 순서대로 가져올 때 성능 향상
-);
-
+                       block_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '블록 고유 ID',
+                       board_id INT NOT NULL COMMENT '게시글 ID (Board 테이블 PK 참조)', -- post_id에서 board_id로 변경하여 일관성 유지
+                       order_index INT NOT NULL COMMENT '게시글 내 블록 순서',
+                       block_type VARCHAR(50) NOT NULL COMMENT '블록 타입 (예: text, image, video)',
+                       content_text TEXT NULL COMMENT '텍스트 내용 (block_type이 text인 경우)',
+                       image_url VARCHAR(512) NULL COMMENT '이미지 URL (block_type이 image인 경우)', -- 길이 수정
+                       image_caption VARCHAR(255) NULL COMMENT '이미지 캡션',
+                       create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '블록 생성 일시',
+                       update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '블록 수정 일시',
+                       CONSTRAINT fk_block_board_id FOREIGN KEY (board_id) REFERENCES Board(board_id) -- FK 컬럼명 일치
+                           ON DELETE CASCADE, -- 게시글이 삭제되면 해당 블록들도 모두 삭제
+                       INDEX idx_board_order (board_id, order_index) -- 특정 게시물의 콘텐츠 블록을 순서대로 가져올 때 성능 향상
+) ENGINE=InnoDB COMMENT '게시글 콘텐츠 블록';
 
 
 select * from food;

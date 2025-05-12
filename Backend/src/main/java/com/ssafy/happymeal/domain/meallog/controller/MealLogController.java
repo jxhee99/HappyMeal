@@ -63,6 +63,15 @@ public class MealLogController {
         return ResponseEntity.ok(stats);
     }
 
+    // 식단 기록 상세 조회
+    @GetMapping("/{logId}")
+    public ResponseEntity<MealLogResponseDto> getDetailMealLog(@PathVariable Long logId, @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        log.info("상세 식단기록 요청 : userId={}, logId={}", userId, logId);
+        MealLogResponseDto log = mealLogService.getDetailMealLog(userId, logId);
+        return ResponseEntity.ok(log);
+    }
+
     // 식단 기록 삭제
     @DeleteMapping("/{logId}")
     public ResponseEntity<?> deleteMealLog(@PathVariable Long logId, @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {

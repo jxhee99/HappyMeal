@@ -9,7 +9,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Builder
-// 특정 날짜 식단 기록 조회용 DTO
+// 특정 날짜 식단 기록 조회용
+// 식단 기록 상세 조회용
 public class MealLogResponseDto {
     private Long logId;
     private String foodName; // 조회 시 음식 반환을 위해 사용

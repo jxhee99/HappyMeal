@@ -74,7 +74,7 @@ CREATE TABLE MealLog (
                              ON UPDATE CASCADE
 ) ENGINE=InnoDB COMMENT '사용자 식사 기록';
 
-- - 커뮤니티 게시판 테이블
+-- 커뮤니티 게시판 테이블
 CREATE TABLE Board (
                        board_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '게시글 고유 ID',
                        user_id BIGINT NOT NULL COMMENT '작성자 ID (User 테이블 PK 참조)', -- BIGINT로 수정
@@ -88,7 +88,7 @@ CREATE TABLE Board (
                            ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT '커뮤니티 게시판';
 
-- - 게시글 콘텐츠 블록 테이블
+-- 게시글 콘텐츠 블록 테이블
 CREATE TABLE Block (
                        block_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '블록 고유 ID',
                        board_id INT NOT NULL COMMENT '게시글 ID (Board 테이블 PK 참조)', -- post_id에서 board_id로 변경하여 일관성 유지

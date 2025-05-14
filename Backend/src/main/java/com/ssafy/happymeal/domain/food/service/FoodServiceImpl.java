@@ -130,5 +130,7 @@ public class FoodServiceImpl implements FoodService { // FoodService 인터페�
         return foodDAO.findRecommendFoods(params);
     }
 
+    
+
 
 }

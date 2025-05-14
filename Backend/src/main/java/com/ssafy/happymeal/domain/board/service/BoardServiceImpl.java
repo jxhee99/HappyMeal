@@ -1,18 +1,24 @@
 package com.ssafy.happymeal.domain.board.service;
 
+import com.ssafy.happymeal.domain.board.dao.BlockDAO;
 import com.ssafy.happymeal.domain.board.dao.BoardDAO;
-import com.ssafy.happymeal.domain.board.dto.BoardAuthorSearchCriteria;
-import com.ssafy.happymeal.domain.board.dto.BoardCategoryCriteria;
-import com.ssafy.happymeal.domain.board.dto.BoardResponseDto;
-import com.ssafy.happymeal.domain.board.dto.BoardTitleSearchCriteria;
+import com.ssafy.happymeal.domain.board.dto.*;
+import com.ssafy.happymeal.domain.board.entity.Block;
+import com.ssafy.happymeal.domain.board.entity.Board;
+import com.ssafy.happymeal.domain.user.dao.UserDAO;
+import com.ssafy.happymeal.domain.user.entity.User;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,6 +26,8 @@ import java.util.List;
 public class BoardServiceImpl implements BoardService{
 
     private final BoardDAO boardDAO;
+    private final BlockDAO blockDAO;
+    private final UserDAO userDao;
 
     // 게시글 조회(필터링, 정렬, 페이징 포함)
     @Override
@@ -49,6 +57,77 @@ public class BoardServiceImpl implements BoardService{
         List<BoardResponseDto> boards = boardDAO.searchBoardsByAuthor(criteria);
         long totalElements = boardDAO.countBoardsByAuthor(criteria);
         return new PageImpl<>(boards, PageRequest.of(criteria.getPage(), criteria.getSize()), totalElements);
+    }
+
+    @Override
+    @Transactional // 여러 DB 쓰기 작업이므로 트랜잭션 필수
+    public BoardDetailResponseDto createBoardWithBlocks(BoardCreateRequestDto requestDto, Long userId) {
+        log.info("게시글 생성 서비스 시작 - userId: {}, title: {}", userId, requestDto.getTitle());
+
+        User author = userDao.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("작성자(User) 정보를 찾을 수 없습니다. ID: " + userId));
+
+        Board board = Board.builder()
+                .userId(userId)
+                .title(requestDto.getTitle())
+                .categoryId(requestDto.getCategoryId() != null ? requestDto.getCategoryId() : 0)
+                .views(0)
+                .likesCount(0)
+                .commentsCount(0)
+                .build();
+        boardDAO.saveBoard(board);
+        log.debug("Board 엔티티 저장 완료 - boardId: {}", board.getBoardId());
+
+        List<Block> savedBlockEntities = new ArrayList<>(); // Block 엔티티 리스트
+        if (requestDto.getBlocks() != null && !requestDto.getBlocks().isEmpty()) {
+            for (BlockCreateRequestDto blockDto : requestDto.getBlocks()) {
+                Block block = Block.builder()
+                        .boardId(board.getBoardId())
+                        .orderIndex(blockDto.getOrderIndex())
+                        .blockType(blockDto.getBlockType())
+                        .contentText(blockDto.getContentText())
+                        .imageUrl(blockDto.getImageUrl())
+                        .imageCaption(blockDto.getImageCaption())
+                        .build();
+                blockDAO.saveBlock(block);
+                savedBlockEntities.add(block); // 저장된 Block 엔티티를 리스트에 추가
+                log.debug("Block 엔티티 저장 완료 - blockId: {}, boardId: {}", block.getBlockId(), block.getBoardId());
+            }
+        }
+
+        Board createdBoard = boardDAO.findBoardById(board.getBoardId())
+                .orElseThrow(() -> new EntityNotFoundException("방금 생성된 게시글 정보를 찾을 수 없습니다. ID: " + board.getBoardId()));
+
+        // ❗️❗️❗️ 수정된 부분 ❗️❗️❗️
+        // BoardDetailResponseDto.fromEntities는 List<Block>을 받아서 내부에서 List<BlockResponseDto>로 변환합니다.
+        // 따라서, blockResponseDtos로 미리 변환하지 않고, savedBlockEntities (List<Block>)를 직접 전달합니다.
+        log.info("게시글 및 블록 생성 서비스 완료 - boardId: {}", createdBoard.getBoardId());
+        return BoardDetailResponseDto.fromEntities(createdBoard, author, savedBlockEntities); // savedBlockEntities 전달
+    }
+
+    @Override
+    @Transactional // 조회수 증가(UPDATE)가 포함되므로 readOnly=false
+    public BoardDetailResponseDto getBoardDetailById(Long boardId) {
+        log.info("게시글 상세 조회 서비스 시작 - boardId: {}", boardId);
+
+        int updatedRows = boardDAO.incrementViewCount(boardId);
+        if (updatedRows == 0) {
+            log.warn("게시글(ID: {}) 조회수 증가 실패 또는 해당 게시글이 존재하지 않을 수 있음.", boardId);
+        }
+
+        Board board = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다. ID: " + boardId));
+
+        User author = userDao.findById(board.getUserId())
+                .orElse(User.builder().nickname("탈퇴한 사용자").userId(board.getUserId()).build());
+
+        List<Block> blockEntities = blockDAO.findBlocksByBoardId(boardId); // List<Block> 조회
+
+        // ❗️❗️❗️ 수정된 부분 ❗️❗️❗️
+        // BoardDetailResponseDto.fromEntities는 List<Block>을 받아서 내부에서 List<BlockResponseDto>로 변환합니다.
+        // 따라서, blockResponseDtos로 미리 변환하지 않고, blockEntities (List<Block>)를 직접 전달합니다.
+        log.info("게시글 상세 조회 서비스 완료 - boardId: {}", board.getBoardId());
+        return BoardDetailResponseDto.fromEntities(board, author, blockEntities); // blockEntities 전달
     }
 
 

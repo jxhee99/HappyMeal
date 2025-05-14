@@ -76,7 +76,7 @@ CREATE TABLE MealLog (
 
 -- 커뮤니티 게시판 테이블
 CREATE TABLE Board (
-                       board_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '게시글 고유 ID',
+                       board_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '게시글 고유 ID',
                        user_id BIGINT NOT NULL COMMENT '작성자 ID (User 테이블 PK 참조)', -- BIGINT로 수정
                        category_id INT NULL COMMENT '카테고리 ID (BoardCategory 테이블 PK 참조)', -- BoardCategory 테이블 참조
                        title VARCHAR(255) NOT NULL COMMENT '게시글 제목',
@@ -84,14 +84,15 @@ CREATE TABLE Board (
                        update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '게시글 수정 일시',
                        views INT DEFAULT 0 COMMENT '조회수',
                        likes_count INT DEFAULT 0 COMMENT '좋아요 수',
+                       comments_count INT DEFAULT 0 COMMENT '댓글 수',
                        CONSTRAINT fk_board_user_id FOREIGN KEY (user_id) REFERENCES User(user_id)
                            ON DELETE CASCADE
 ) ENGINE=InnoDB COMMENT '커뮤니티 게시판';
 
 -- 게시글 콘텐츠 블록 테이블
 CREATE TABLE Block (
-                       block_id INT AUTO_INCREMENT PRIMARY KEY COMMENT '블록 고유 ID',
-                       board_id INT NOT NULL COMMENT '게시글 ID (Board 테이블 PK 참조)', -- post_id에서 board_id로 변경하여 일관성 유지
+                       block_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '블록 고유 ID',
+                       board_id BIGINT NOT NULL COMMENT '게시글 ID (Board 테이블 PK 참조)', -- post_id에서 board_id로 변경하여 일관성 유지
                        order_index INT NOT NULL COMMENT '게시글 내 블록 순서',
                        block_type VARCHAR(50) NOT NULL COMMENT '블록 타입 (예: text, image, video)',
                        content_text TEXT NULL COMMENT '텍스트 내용 (block_type이 text인 경우)',
@@ -104,5 +105,35 @@ CREATE TABLE Block (
                        INDEX idx_board_order (board_id, order_index) -- 특정 게시물의 콘텐츠 블록을 순서대로 가져올 때 성능 향상
 ) ENGINE=InnoDB COMMENT '게시글 콘텐츠 블록';
 
+-- 게시글 좋아요 테이블
+CREATE TABLE BoardLike (
+                           user_id BIGINT NOT NULL COMMENT '좋아요를 누른 사용자 ID (User 테이블 PK 참조)',
+                           board_id BIGINT NOT NULL COMMENT '좋아요 대상 게시글 ID (Board 테이블 PK 참조)',
+                           create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '좋아요 누른 일시',
+
+                           PRIMARY KEY (user_id, board_id) COMMENT '사용자 ID와 게시글 ID 조합으로 PK 설정 (중복 좋아요 방지)',
+
+                           CONSTRAINT fk_like_user FOREIGN KEY (user_id) REFERENCES User(user_id)
+                               ON DELETE CASCADE, -- 사용자 삭제 시 해당 사용자 좋아요 기록 삭제
+                           CONSTRAINT fk_like_board FOREIGN KEY (board_id) REFERENCES Board(board_id)
+                               ON DELETE CASCADE, -- 게시글 삭제 시 해당 게시글 좋아요 기록 삭제
+
+                           INDEX idx_like_board (board_id) COMMENT '게시글별 좋아요 수 조회를 위한 인덱스 (선택적)'
+) ENGINE=InnoDB COMMENT '게시글 좋아요 정보';
+
+-- 댓글 테이블
+CREATE TABLE Comment (
+                         comment_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '댓글 고유 ID',
+                         board_id BIGINT NOT NULL COMMENT '댓글이 달린 게시글 ID (Board 테이블 PK 참조)',
+                         user_id BIGINT NOT NULL COMMENT '댓글 작성자 ID (User 테이블 PK 참조)',
+                         content TEXT NOT NULL COMMENT '댓글 내용',
+                         create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '댓글 생성 일시',
+                         update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '댓글 수정 일시',
+                         CONSTRAINT fk_comment_board FOREIGN KEY (board_id) REFERENCES Board(board_id)
+                             ON DELETE CASCADE, -- 게시글 삭제 시 관련 댓글 모두 삭제
+                         CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES User(user_id)
+                             ON DELETE CASCADE, -- 사용자 삭제 시 해당 사용자 댓글 모두 삭제 (정책에 따라 변경 가능)
+                         INDEX idx_comment_board (board_id) COMMENT '게시글별 댓글 조회를 위한 인덱스'
+) ENGINE=InnoDB COMMENT '게시글 댓글 정보';
 
 select * from food;

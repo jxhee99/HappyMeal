@@ -4,10 +4,11 @@ import com.ssafy.happymeal.domain.board.dto.BoardAuthorSearchCriteria;
 import com.ssafy.happymeal.domain.board.dto.BoardCategoryCriteria;
 import com.ssafy.happymeal.domain.board.dto.BoardResponseDto;
 import com.ssafy.happymeal.domain.board.dto.BoardTitleSearchCriteria;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import com.ssafy.happymeal.domain.board.entity.Board;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Mapper
 public interface BoardDAO {
@@ -187,4 +188,20 @@ public interface BoardDAO {
             </script>
             """)
     long countBoardsByAuthor(BoardAuthorSearchCriteria criteria);
+
+    String BASE_BOARD_COLUMNS = "board_id, user_id, category_id, title, create_at, update_at, views, likes_count, comments_count";
+
+    // DB 스키마의 create_at, update_at 컬럼명 사용
+    @Insert("INSERT INTO Board (user_id, category_id, title, create_at, update_at, views, likes_count, comments_count) " +
+            "VALUES (#{userId}, #{categoryId}, #{title}, NOW(), NOW(), 0, 0, 0)")
+    @Options(useGeneratedKeys = true, keyProperty = "boardId", keyColumn = "board_id")
+    int saveBoard(Board board);
+
+    @Select("SELECT " + BASE_BOARD_COLUMNS + " FROM Board WHERE board_id = #{boardId}")
+    Optional<Board> findBoardById(Long boardId);
+
+    @Update("UPDATE Board SET views = views + 1 WHERE board_id = #{boardId}")
+    int incrementViewCount(@Param("boardId") Long boardId);
+
+
 }

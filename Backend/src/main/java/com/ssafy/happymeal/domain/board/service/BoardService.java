@@ -1,9 +1,6 @@
 package com.ssafy.happymeal.domain.board.service;
 
-import com.ssafy.happymeal.domain.board.dto.BoardAuthorSearchCriteria;
-import com.ssafy.happymeal.domain.board.dto.BoardCategoryCriteria;
-import com.ssafy.happymeal.domain.board.dto.BoardResponseDto;
-import com.ssafy.happymeal.domain.board.dto.BoardTitleSearchCriteria;
+import com.ssafy.happymeal.domain.board.dto.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -17,4 +14,10 @@ public interface BoardService {
 
     // 게시글 검색 (작성자로 검색)
     Page<BoardResponseDto> searchBoardsByAuthor(BoardAuthorSearchCriteria criteria);
+
+    // === 신규 기능: 게시글 생성 (블록 포함) ===
+    BoardDetailResponseDto createBoardWithBlocks(BoardCreateRequestDto requestDto, Long userId);
+
+    // === 신규 기능: 게시글 상세 조회 (블록 및 작성자 정보 포함) ===
+    BoardDetailResponseDto getBoardDetailById(Long boardId);
 }

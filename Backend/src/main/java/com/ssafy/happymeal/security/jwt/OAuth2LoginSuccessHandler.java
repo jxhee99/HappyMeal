@@ -1,20 +1,21 @@
-package com.ssafy.happymeal.security.jwt;
+package com.ssafy.happymeal.security.jwt; // 패키지명은 OAuth2LoginSuccessHandler의 실제 위치에 맞게 조정
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.databind.ObjectMapper; // JSON 직접 응답 시 필요, 리디렉션 방식에서는 불필요
 import com.ssafy.happymeal.domain.user.dao.UserDAO;
 import com.ssafy.happymeal.domain.user.entity.User;
-import com.ssafy.happymeal.security.jwt.JwtTokenProvider;
-import lombok.Getter;
+// import com.ssafy.happymeal.security.jwt.JwtTokenProvider; // JwtTokenProvider 경로는 올바르다고 가정
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value; // 프론트엔드 리디렉션 URI를 설정 파일에서 읽어오기 위함 (선택 사항)
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User; // DefaultOAuth2User 사용
-import org.springframework.security.oauth2.core.user.OAuth2User; // OAuth2User 임포트
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.DefaultRedirectStrategy; // RedirectStrategy 사용
+import org.springframework.security.web.RedirectStrategy;       // RedirectStrategy 사용
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional; // DB 조회를 위해 추가
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder; // URL 생성을 위해 추가
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,63 +23,77 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import lombok.*;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-// @Transactional // 핸들러 자체보다는 DAO 호출 시 트랜잭션이 적용되므로 필수 아님 (필요시 추가)
-
-// AccessToken 생성
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
-    private final UserDAO userDAO; // DB 조회를 위해 userDAO 주입
+    // private final ObjectMapper objectMapper; // JSON 직접 응답이 아니므로 제거 또는 주석 처리
+    private final UserDAO userDAO;
+    private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy(); // 리디렉션 전략 객체 생성
+
+    // application.properties 등에서 프론트엔드 콜백 URI를 설정하고 주입받을 수 있습니다.
+    // 예: frontend.redirect-uri=http://localhost:3000/oauth/redirect
+    @Value("${frontend.redirect-uri:http://localhost:3000/oauth/redirect}") // 기본값 설정 가능
+    private String frontendRedirectUri;
 
     @Override
-    @Transactional(readOnly = true) // DB 조회가 있으므로 읽기 전용 트랜잭션 권장
+    @Transactional(readOnly = true)
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        log.info("OAuth2 Login successful! Attempting to issue JWT.");
+        log.info("OAuth2 Login successful! Attempting to issue JWT and redirect to frontend.");
 
-        // 1. 인증된 사용자 정보 가져오기 (DefaultOAuth2User 타입)
-        // CustomOAuth2UserService에서 반환한 DefaultOAuth2User 객체가 principal로 들어옴
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
-        // 2. Google ID (Subject) 추출
-        // DefaultOAuth2User의 getName()은 생성 시 사용된 userNameAttributeName("sub")에 해당하는 값을 반환
         String googleId = oAuth2User.getName();
         log.debug("Extracted googleId (sub) from principal: {}", googleId);
 
-        // 3. Google ID를 사용하여 DB에서 사용자 정보 다시 조회
         Optional<User> userOptional = userDAO.findByGoogleId(googleId);
 
         if (userOptional.isEmpty()) {
-            // CustomOAuth2UserService에서 사용자를 저장했어야 하므로, 여기서 찾을 수 없다면 심각한 오류 상황
             log.error("FATAL: Cannot find user in DB after successful OAuth2 login. googleId: {}", googleId);
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-            response.getWriter().write("{\"error\": \"User not found after login.\"}");
-            return; // 처리 중단
+            // 프론트엔드의 에러 처리 페이지로 리디렉션하거나, 적절한 에러 응답을 보낼 수 있습니다.
+            // 여기서는 간단히 에러 페이지로 리디렉션하는 예시 (프론트엔드에 /oauth/error 경로 필요)
+            String errorTargetUrl = UriComponentsBuilder.fromUriString(frontendRedirectUri.replace("/redirect", "/error"))
+                    .queryParam("error", "user_processing_failed")
+                    .build().toUriString();
+            redirectStrategy.sendRedirect(request, response, errorTargetUrl);
+            return;
         }
 
-        // 4. 조회된 User 객체에서 userId와 role 추출
         User user = userOptional.get();
         Long userId = user.getUserId();
-        String role = user.getRole(); // User 엔티티의 String 타입 role 필드
+        String role = user.getRole();
         log.info("User found in DB: userId={}, role={}", userId, role);
 
-        // 5. JwtTokenProvider를 사용하여 Access Token 및 Refresh Token 생성
         String accessToken = jwtTokenProvider.generateAccessToken(userId, role);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
-        log.debug("Generated Access Token: {}", accessToken);
-        log.debug("Generated Refresh Token: {}", refreshToken);
+        log.debug("Generated Access Token for redirect: {}", accessToken);
+        log.debug("Generated Refresh Token for redirect: {}", refreshToken);
 
-        // 6. 응답 설정 및 본문에 토큰 담아 전송 (이전과 동일)
+        // === 수정된 부분: JSON 응답 대신 프론트엔드로 리디렉션 ===
+        // 1. 프론트엔드 리디렉션 대상 URL 생성 (쿼리 파라미터에 토큰 포함)
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendRedirectUri)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .queryParam("userId", userId) // 선택: 사용자 ID도 전달
+                .queryParam("nickname", user.getNickname()) // 선택: 닉네임도 전달
+                .build().toUriString();
+
+        // 2. 리디렉션 수행
+        // clearAuthenticationAttributes(request); // SimpleUrlAuthenticationSuccessHandler를 상속받지 않았으므로 직접 호출 불가. 필요시 로직 추가.
+        if (response.isCommitted()) {
+            log.debug("Response has already been committed. Unable to redirect to " + targetUrl);
+            return;
+        }
+        redirectStrategy.sendRedirect(request, response, targetUrl);
+        log.info("Redirecting to frontend: {} with tokens for userId: {}", frontendRedirectUri, userId);
+        // JSON 응답 로직은 제거됨
+        /*
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
         try {
             TokenResponseDto tokenResponse = new TokenResponseDto(accessToken, refreshToken);
             response.getWriter().write(objectMapper.writeValueAsString(tokenResponse));
@@ -87,9 +102,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             log.error("Error writing token response to output stream", e);
             throw e;
         }
+        */
     }
 
-    // 간단한 토큰 응답 DTO
+    // TokenResponseDto는 이 핸들러에서 직접 사용되지 않으므로 주석 처리 또는 삭제 가능
+    // (만약 /api/auth/refresh 등 다른 곳에서 이 DTO를 사용한다면 별도 파일로 관리)
+
     @Getter
     @Setter
     private static class TokenResponseDto {
@@ -101,4 +119,5 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             this.refreshToken = refreshToken;
         }
     }
+
 }

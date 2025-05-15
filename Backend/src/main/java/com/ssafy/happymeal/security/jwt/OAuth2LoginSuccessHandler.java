@@ -21,6 +21,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import lombok.*;
@@ -65,6 +66,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         User user = userOptional.get();
         Long userId = user.getUserId();
         String role = user.getRole();
+        // 닉네임을 UTF-8로 URL 인코딩합니다.
+        String encodedNickname = URLEncoder.encode(user.getNickname(), StandardCharsets.UTF_8.toString());
         log.info("User found in DB: userId={}, role={}", userId, role);
 
         String accessToken = jwtTokenProvider.generateAccessToken(userId, role);
@@ -78,7 +81,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
                 .queryParam("userId", userId) // 선택: 사용자 ID도 전달
-                .queryParam("nickname", user.getNickname()) // 선택: 닉네임도 전달
+//                .queryParam("nickname", user.getNickname()) // 선택: 닉네임도 전달
+                .queryParam("nickname", encodedNickname) // 선택: 닉네임도 전달
                 .build().toUriString();
 
         // 2. 리디렉션 수행

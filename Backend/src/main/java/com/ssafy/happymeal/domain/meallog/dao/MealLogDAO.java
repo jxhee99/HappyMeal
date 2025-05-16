@@ -30,7 +30,7 @@ public interface MealLogDAO {
     void insertMealLog(MealLog mealLog);
 
     /* 전체 식단 기록 조회 */
-    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, img_url AS imgUrl, " +
+    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, m.img_url AS imgUrl, " +
             "m.meal_type AS mealType, m.quantity, " +
             "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
             "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
@@ -40,7 +40,7 @@ public interface MealLogDAO {
     List<MealLogResponseDto> getAllMealLogs(Long userId);
 
     /* 특정 날짜 식단 기록 조회 */
-    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, img_url AS imgUrl, " +
+    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, m.img_url AS imgUrl, " +
             "m.meal_type AS mealType, m.quantity, " +
             "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
             "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
@@ -52,15 +52,25 @@ public interface MealLogDAO {
     List<MealLogResponseDto> findByUserAndDate(@Param("userId") Long userId, @Param("mealDate") LocalDate mealDate);
 
     /* 특정 날짜 식단 통계 조회 */
-    @Select("Select sum(f.calories*m.quantity/100) AS totalCalories, sum(f.carbs*m.quantity/100) AS totalCarbs, " +
-            "sum(f.sugar*m.quantity/100) AS totalSugar, sum(f.protein*m.quantity/100) AS totalProtein, sum(f.fat*m.quantity/100) AS totalFat " +
+    @Select("Select m.meal_date AS date, sum(f.calories * m.quantity/100) AS totalCalories, sum(f.carbs * m.quantity/100) AS totalCarbs, " +
+            "sum(f.sugar * m.quantity/100) AS totalSugar, sum(f.protein * m.quantity/100) AS totalProtein, sum(f.fat * m.quantity/100) AS totalFat " +
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id=#{userId} AND m.meal_date=#{mealDate}")
     MealLogStatsDto getDailyMealStats(@Param("userId") Long userId, @Param("mealDate") LocalDate mealDate);
 
+    /* 해당 기간(startDate ~ endDate)의 일별 식단 통계 조회 */
+    @Select("Select m.meal_date AS date, sum(f.calories*m.quantity/100) AS totalCalories, sum(f.carbs*m.quantity/100) AS totalCarbs, " +
+            "sum(f.sugar*m.quantity/100) AS totalSugar, sum(f.protein*m.quantity/100) AS totalProtein, sum(f.fat*m.quantity/100) AS totalFat " +
+            "From MealLog m " +
+            "Join Food f ON m.food_id = f.food_id " +
+            "Where m.user_id=#{userId} AND m.meal_date Between #{startDate} And #{endDate}" +
+            "Group By m.meal_date " +
+            "Order By m.meal_date ASC")
+    List<MealLogStatsDto> getDailyStatsForDateRange(Long userId, LocalDate startDate, LocalDate endDate);
+
     /* 식단 기록 상세 조회 */
-    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, img_url AS imgUrl, " +
+    @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, m.img_url AS imgUrl, " +
             "m.meal_type AS mealType, m.quantity, " +
             "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
             "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
@@ -73,4 +83,6 @@ public interface MealLogDAO {
     @Delete("Delete From MealLog " +
             "Where user_id = #{userId} AND log_id = #{logId}")
     void deleteMealLog(Long userId, Long logId);
+
+
 }

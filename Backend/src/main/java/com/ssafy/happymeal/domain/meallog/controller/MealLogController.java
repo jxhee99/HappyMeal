@@ -63,6 +63,16 @@ public class MealLogController {
         return ResponseEntity.ok(stats);
     }
 
+    // 주간 식단 통계 조회
+    @GetMapping("/stats/weekly")
+    public ResponseEntity<List<MealLogStatsDto>> getWeeklyMealLogStats(@RequestParam("date") String date, @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        LocalDate endDate = LocalDate.parse(date);
+        List<MealLogStatsDto> weeklyStats = mealLogService.getWeeklyMealLogStats(userId, endDate);
+        log.info("주간 식단 통계 요청 날짜 : mealDate={}", date);
+        return ResponseEntity.ok(weeklyStats);
+    }
+
     // 식단 기록 상세 조회
     @GetMapping("/{logId}")
     public ResponseEntity<MealLogResponseDto> getDetailMealLog(@PathVariable Long logId, @AuthenticationPrincipal UserDetails userDetails) throws NotFoundException {

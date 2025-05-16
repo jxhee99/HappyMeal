@@ -3,6 +3,7 @@ import { Container, Grid, Typography, Box, Button, CircularProgress } from '@mui
 import { motion } from 'framer-motion';
 import { styled } from '@mui/material/styles';
 import { foodService } from '../services/foodService';
+import FoodCard from '../components/FoodCard';
 
 const MotionBox = motion(Box);
 
@@ -236,47 +237,15 @@ const Home = () => {
               {categoryInfo[category].description}
             </Typography>
             <Grid container spacing={4}>
-              {foods.map((meal) => (
-                <Grid item xs={12} sm={6} md={3} key={meal.foodId}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: meal.foodId * 0.1 }}
-                  >
-                    <StyledCard>
-                      <MealImage src={meal.imgUrl || 'https://source.unsplash.com/random/400x300/?food'} alt={meal.name} />
-                      <MealTitle>{meal.name}</MealTitle>
-                      <MealDescription>{meal.category}</MealDescription>
-                      <NutritionInfo>
-                        <NutritionChip color="#FF6B6B">
-                          {meal.calories} kcal
-                        </NutritionChip>
-                        <NutritionChip color="#FF8E53">
-                          단백질 {meal.protein}g
-                        </NutritionChip>
-                        <NutritionChip color="#FFB347">
-                          탄수화물 {meal.carbs}g
-                        </NutritionChip>
-                        <NutritionChip color="#FFD700">
-                          지방 {meal.fat}g
-                        </NutritionChip>
-                      </NutritionInfo>
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        sx={{
-                          borderColor: '#FF6B6B',
-                          color: '#FF6B6B',
-                          '&:hover': {
-                            borderColor: '#FF8E53',
-                            backgroundColor: 'rgba(255, 107, 107, 0.05)',
-                          },
-                        }}
-                      >
-                        상세 정보 보기
-                      </Button>
-                    </StyledCard>
-                  </motion.div>
+              {foods.map((food) => (
+                <Grid item xs={12} sm={6} md={3} key={food.foodId}>
+                  <FoodCard 
+                    food={food} 
+                    onClick={() => {
+                      // 상세 정보 보기 클릭 시 처리
+                      console.log('Food clicked:', food);
+                    }}
+                  />
                 </Grid>
               ))}
             </Grid>

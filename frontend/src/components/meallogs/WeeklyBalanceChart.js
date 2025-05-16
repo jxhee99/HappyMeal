@@ -1,152 +1,131 @@
-import React from 'react';
-import { Line } from 'react-chartjs-2';
-import { Box, useTheme } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
-  Filler,
 } from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+import { mealLogService } from '../../services/mealLogService';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
+  BarElement,
   Title,
   Tooltip,
-  Legend,
-  Filler
+  Legend
 );
 
 const WeeklyBalanceChart = () => {
-  const theme = useTheme();
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const data = {
-    labels: ['월', '화', '수', '목', '금', '토', '일'],
+  useEffect(() => {
+    const fetchWeeklyData = async () => {
+      try {
+        const data = await mealLogService.getWeeklyMealLogs();
+        setWeeklyData(data);
+      } catch (err) {
+        console.error(err);
+        setError('주간 데이터를 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWeeklyData();
+  }, []);
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+  }
+
+  const chartData = {
+    labels: weeklyData.map(data => {
+      const date = new Date(data.date);
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    }),
     datasets: [
       {
         label: '칼로리',
-        data: [2100, 1900, 2200, 1800, 2000, 2300, 1900],
-        borderColor: '#FF6B6B',
-        backgroundColor: 'rgba(255, 107, 107, 0.1)',
-        tension: 0.4,
-        fill: true,
-        pointBackgroundColor: '#FF6B6B',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        data: weeklyData.map(data => data.calories),
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        borderColor: 'rgb(255, 99, 132)',
+        borderWidth: 1,
       },
       {
         label: '단백질',
-        data: [80, 75, 85, 70, 78, 82, 75],
-        borderColor: '#FF8E53',
-        backgroundColor: 'rgba(255, 142, 83, 0.1)',
-        tension: 0.4,
-        fill: true,
-        pointBackgroundColor: '#FF8E53',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        data: weeklyData.map(data => data.protein),
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgb(54, 162, 235)',
+        borderWidth: 1,
+      },
+      {
+        label: '탄수화물',
+        data: weeklyData.map(data => data.carbs),
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgb(75, 192, 192)',
+        borderWidth: 1,
+      },
+      {
+        label: '지방',
+        data: weeklyData.map(data => data.fat),
+        backgroundColor: 'rgba(153, 102, 255, 0.5)',
+        borderColor: 'rgb(153, 102, 255)',
+        borderWidth: 1,
       },
     ],
   };
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
-        labels: {
-          font: {
-            family: 'Noto Sans KR',
-            size: 12,
-            weight: 500,
-          },
-          padding: 20,
-          usePointStyle: true,
-          pointStyle: 'circle',
-        },
       },
-      tooltip: {
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        titleColor: '#2d3436',
-        bodyColor: '#2d3436',
-        borderColor: 'rgba(0, 0, 0, 0.1)',
-        borderWidth: 1,
-        padding: 12,
-        boxPadding: 6,
-        usePointStyle: true,
-        titleFont: {
-          family: 'Noto Sans KR',
-          size: 14,
-          weight: 700,
-        },
-        bodyFont: {
-          family: 'Noto Sans KR',
-          size: 13,
-        },
-        callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed.y !== null) {
-              label += context.parsed.y + (label.includes('칼로리') ? ' kcal' : ' g');
-            }
-            return label;
-          }
-        }
+      title: {
+        display: true,
+        text: '주간 영양소 섭취량',
       },
     },
     scales: {
-      x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          font: {
-            family: 'Noto Sans KR',
-            size: 12,
-            weight: 500,
-          },
-          color: '#636e72',
-        },
-      },
       y: {
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
-          drawBorder: false,
-        },
-        ticks: {
-          font: {
-            family: 'Noto Sans KR',
-            size: 12,
-            weight: 500,
-          },
-          color: '#636e72',
-          padding: 10,
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: '섭취량 (g)',
         },
       },
-    },
-    interaction: {
-      intersect: false,
-      mode: 'index',
+      x: {
+        title: {
+          display: true,
+          text: '날짜',
+        },
+      },
     },
   };
 
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-      <Line data={data} options={options} />
+    <Box sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1 }}>
+      <Bar data={chartData} options={options} />
     </Box>
   );
 };

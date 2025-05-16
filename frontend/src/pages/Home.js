@@ -1,7 +1,8 @@
-import React from 'react';
-import { Container, Grid, Typography, Box, Button } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Grid, Typography, Box, Button, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import { styled } from '@mui/material/styles';
+import { foodService } from '../services/foodService';
 
 const MotionBox = motion(Box);
 
@@ -67,39 +68,88 @@ const NutritionChip = styled(Box)(({ color }) => ({
   color: color,
 }));
 
+const CategorySection = styled(Box)(({ theme }) => ({
+  marginBottom: '48px',
+  padding: '24px',
+  borderRadius: '24px',
+  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+  backdropFilter: 'blur(10px)',
+}));
+
 const Home = () => {
-  const recommendedMeals = [
-    {
-      id: 1,
-      title: '단백질 풍부한 닭가슴살 샐러드',
-      description: '신선한 채소와 구운 닭가슴살로 만든 건강한 샐러드',
-      image: 'https://source.unsplash.com/random/400x300/?salad',
-      calories: 350,
-      protein: 30,
-      carbs: 15,
-      fat: 12,
+  const [categoryFoods, setCategoryFoods] = useState({
+    diet: [],
+    healthy: [],
+    'bulk-up': [],
+    cheating: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const categoryInfo = {
+    diet: {
+      title: '다이어트 식단',
+      description: '저칼로리, 고단백 식단으로 건강한 다이어트를 도와드립니다',
+      gradient: 'linear-gradient(135deg, #4CAF50, #8BC34A)'
     },
-    {
-      id: 2,
-      title: '지중해식 연어 스테이크',
-      description: '올리브 오일과 허브로 맛을 낸 건강한 연어 요리',
-      image: 'https://source.unsplash.com/random/400x300/?salmon',
-      calories: 450,
-      protein: 35,
-      carbs: 20,
-      fat: 25,
+    healthy: {
+      title: '건강한 식단',
+      description: '균형 잡힌 영양소로 건강한 식습관을 만들어보세요',
+      gradient: 'linear-gradient(135deg, #2196F3, #03A9F4)'
     },
-    {
-      id: 3,
-      title: '퀴노아 보울',
-      description: '슈퍼푸드 퀴노아와 신선한 채소로 만든 영양만점 보울',
-      image: 'https://source.unsplash.com/random/400x300/?quinoa',
-      calories: 380,
-      protein: 15,
-      carbs: 45,
-      fat: 18,
+    'bulk-up': {
+      title: '근육 증량 식단',
+      description: '고칼로리, 고단백 식단으로 근육을 키워보세요',
+      gradient: 'linear-gradient(135deg, #FF9800, #FFC107)'
     },
-  ];
+    cheating: {
+      title: '치팅데이 식단',
+      description: '가끔은 맛있는 음식으로 기분 전환을 해보세요',
+      gradient: 'linear-gradient(135deg, #E91E63, #FF4081)'
+    }
+  };
+
+  useEffect(() => {
+    const fetchAllCategoryFoods = async () => {
+      try {
+        setLoading(true);
+        const categories = Object.keys(categoryFoods);
+        const results = await Promise.all(
+          categories.map(category => foodService.getRecommendedFoods(category))
+        );
+        
+        const newCategoryFoods = {};
+        categories.forEach((category, index) => {
+          newCategoryFoods[category] = results[index];
+        });
+        
+        setCategoryFoods(newCategoryFoods);
+      } catch (err) {
+        setError('추천 음식을 불러오는데 실패했습니다.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllCategoryFoods();
+  }, []);
+
+  if (loading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
+        <Typography color="error">{error}</Typography>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ py: 8 }}>
@@ -160,51 +210,78 @@ const Home = () => {
           </Button>
         </Box>
 
-        <Grid container spacing={4}>
-          {recommendedMeals.map((meal) => (
-            <Grid item xs={12} md={4} key={meal.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: meal.id * 0.1 }}
-              >
-                <StyledCard>
-                  <MealImage src={meal.image} alt={meal.title} />
-                  <MealTitle>{meal.title}</MealTitle>
-                  <MealDescription>{meal.description}</MealDescription>
-                  <NutritionInfo>
-                    <NutritionChip color="#FF6B6B">
-                      {meal.calories} kcal
-                    </NutritionChip>
-                    <NutritionChip color="#FF8E53">
-                      단백질 {meal.protein}g
-                    </NutritionChip>
-                    <NutritionChip color="#FFB347">
-                      탄수화물 {meal.carbs}g
-                    </NutritionChip>
-                    <NutritionChip color="#FFD700">
-                      지방 {meal.fat}g
-                    </NutritionChip>
-                  </NutritionInfo>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      borderColor: '#FF6B6B',
-                      color: '#FF6B6B',
-                      '&:hover': {
-                        borderColor: '#FF8E53',
-                        backgroundColor: 'rgba(255, 107, 107, 0.05)',
-                      },
-                    }}
+        {Object.entries(categoryFoods).map(([category, foods]) => (
+          <CategorySection key={category}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: 'Noto Sans KR',
+                fontWeight: 700,
+                mb: 2,
+                background: categoryInfo[category].gradient,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              {categoryInfo[category].title}
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontFamily: 'Noto Sans KR',
+                color: 'text.secondary',
+                mb: 4,
+              }}
+            >
+              {categoryInfo[category].description}
+            </Typography>
+            <Grid container spacing={4}>
+              {foods.map((meal) => (
+                <Grid item xs={12} sm={6} md={3} key={meal.foodId}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: meal.foodId * 0.1 }}
                   >
-                    상세 정보 보기
-                  </Button>
-                </StyledCard>
-              </motion.div>
+                    <StyledCard>
+                      <MealImage src={meal.imgUrl || 'https://source.unsplash.com/random/400x300/?food'} alt={meal.name} />
+                      <MealTitle>{meal.name}</MealTitle>
+                      <MealDescription>{meal.category}</MealDescription>
+                      <NutritionInfo>
+                        <NutritionChip color="#FF6B6B">
+                          {meal.calories} kcal
+                        </NutritionChip>
+                        <NutritionChip color="#FF8E53">
+                          단백질 {meal.protein}g
+                        </NutritionChip>
+                        <NutritionChip color="#FFB347">
+                          탄수화물 {meal.carbs}g
+                        </NutritionChip>
+                        <NutritionChip color="#FFD700">
+                          지방 {meal.fat}g
+                        </NutritionChip>
+                      </NutritionInfo>
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        sx={{
+                          borderColor: '#FF6B6B',
+                          color: '#FF6B6B',
+                          '&:hover': {
+                            borderColor: '#FF8E53',
+                            backgroundColor: 'rgba(255, 107, 107, 0.05)',
+                          },
+                        }}
+                      >
+                        상세 정보 보기
+                      </Button>
+                    </StyledCard>
+                  </motion.div>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          </CategorySection>
+        ))}
       </MotionBox>
     </Container>
   );

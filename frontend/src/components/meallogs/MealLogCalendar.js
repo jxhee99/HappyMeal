@@ -4,6 +4,7 @@ import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ko } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { styled } from '@mui/material/styles';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -40,13 +41,13 @@ const StyledCalendar = styled(Box)(({ theme }) => ({
   },
 }));
 
-const MealLogCalendar = () => {
+const MealLogCalendar = ({ onDateSelect }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [hasMeal, setHasMeal] = useState(false);
 
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
-    // 여기에 선택된 날짜에 대한 처리 로직 추가
+    const formattedDate = format(newDate, 'yyyy-MM-dd');
+    onDateSelect(formattedDate);
   };
 
   return (

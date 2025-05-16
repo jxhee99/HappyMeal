@@ -22,7 +22,7 @@
     "react-query": "^3.39.3",
     "react-router-dom": "^6.30.0",
     "react-scripts": "5.0.1",
-    "recharts": "^2.10.0"
+    "recharts": "^2.15.3"
   },
   "scripts": {
     "start": "react-scripts start",

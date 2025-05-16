@@ -96,42 +96,15 @@ export const mealLogService = {
     }
   },
 
-  // 주간 식단 기록 조회
-  getWeeklyMealLogs: async () => {
+  // 주간 식단 통계 조회
+  getWeeklyMealLogs: async (date) => {
     try {
-      const today = new Date();
-      const promises = [];
-      
-      // 현재 날짜부터 6일 전까지의 날짜 배열 생성
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
-        
-        promises.push(
-          axiosInstance.get('/meallogs/stats', {
-            params: { date: dateStr }
-          }).then(response => ({
-            date: dateStr,
-            ...response.data
-          })).catch(error => {
-            // 통계 데이터가 없는 경우 0으로 채우기
-            console.log(`${dateStr} 통계 데이터 없음`);
-            return {
-              date: dateStr,
-              calories: 0,
-              protein: 0,
-              carbs: 0,
-              fat: 0
-            };
-          })
-        );
-      }
-
-      const responses = await Promise.all(promises);
-      return responses;
+      const response = await axiosInstance.get('/meallogs/stats/weekly', {
+        params: { date }
+      });
+      return response.data;
     } catch (error) {
-      console.error('주간 식단 기록 조회 실패:', error);
+      console.error('주간 식단 통계 조회 실패:', error);
       throw error;
     }
   }

@@ -21,4 +21,6 @@ public interface MealLogService {
     List<MealLogResponseDto> getAllMealLogs(Long userId);
 
     MealLogResponseDto getDetailMealLog(Long userId, Long logId) throws NotFoundException;
+
+    List<MealLogStatsDto> getWeeklyMealLogStats(Long userId, LocalDate endDate);
 }

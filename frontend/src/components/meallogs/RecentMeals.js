@@ -1,93 +1,74 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, CircularProgress, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material';
-import { mealLogService } from '../../services/mealLogService';
+import React from 'react';
+import {
+  Box,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Chip,
+} from '@mui/material';
+import { format, parseISO } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
-const RecentMeals = () => {
-  const [meals, setMeals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchRecentMeals = async () => {
-      try {
-        setLoading(true);
-        const data = await mealLogService.getRecentMealLogs();
-        setMeals(data);
-      } catch (err) {
-        setError('최근 식단 기록을 불러오는데 실패했습니다.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecentMeals();
-  }, []);
-
-  if (loading) {
+const RecentMeals = ({ selectedDate, mealLogs }) => {
+  if (!mealLogs || mealLogs.length === 0) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
+      <Box p={3} textAlign="center">
+        <Typography>선택한 날짜에 기록된 식단이 없습니다.</Typography>
       </Box>
     );
   }
 
-  if (error) {
-    return (
-      <Box p={3}>
-        <Typography color="error">{error}</Typography>
-      </Box>
-    );
-  }
-
-  if (!meals.length) {
-    return (
-      <Box p={3}>
-        <Typography>최근 식단 기록이 없습니다.</Typography>
-      </Box>
-    );
-  }
+  const formatDate = (dateString) => {
+    try {
+      return format(parseISO(dateString), 'yyyy년 MM월 dd일', { locale: ko });
+    } catch (error) {
+      console.error('날짜 형식 변환 오류:', error);
+      return '날짜 정보 없음';
+    }
+  };
 
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
-        최근 식단 기록
+        {formatDate(selectedDate)} 식단
       </Typography>
       <List>
-        {meals.map((meal) => (
-          <ListItem
-            key={meal.logId}
-            sx={{
-              mb: 2,
-              bgcolor: '#f5f5f5',
-              borderRadius: 2,
-              '&:hover': {
-                bgcolor: '#eeeeee',
-              },
-            }}
-          >
-            <ListItemAvatar>
-              <Avatar
-                src={meal.imgUrl}
-                alt={meal.foodName}
-                sx={{ width: 56, height: 56 }}
+        {mealLogs.map((log, index) => (
+          <React.Fragment key={log.id || index}>
+            <ListItem
+              sx={{
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                py: 2
+              }}
+            >
+              <Box display="flex" alignItems="center" width="100%" mb={1}>
+                <Chip
+                  label={log.mealType}
+                  size="small"
+                  color="primary"
+                />
+              </Box>
+              <ListItemText
+                primary={
+                  <Typography variant="body1">
+                    {log.foodName}
+                  </Typography>
+                }
+                secondary={
+                  <Box mt={1}>
+                    <Typography variant="body2" color="text.secondary">
+                      칼로리: {log.calories}kcal | 단백질: {log.protein}g | 
+                      탄수화물: {log.carbs}g | 지방: {log.fat}g
+                    </Typography>
+                  </Box>
+                }
               />
-            </ListItemAvatar>
-            <ListItemText
-              primary={meal.foodName}
-              secondary={
-                <>
-                  <Typography component="span" variant="body2" color="text.primary">
-                    {meal.mealType} - {meal.quantity}인분
-                  </Typography>
-                  <br />
-                  <Typography component="span" variant="body2" color="text.secondary">
-                    {meal.calories} kcal | 단백질 {meal.protein}g | 탄수화물 {meal.carbs}g | 지방 {meal.fat}g
-                  </Typography>
-                </>
-              }
-            />
-          </ListItem>
+            </ListItem>
+            {index < mealLogs.length - 1 && <Divider />}
+          </React.Fragment>
         ))}
       </List>
     </Box>

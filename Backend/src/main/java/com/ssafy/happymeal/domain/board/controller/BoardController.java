@@ -2,6 +2,7 @@ package com.ssafy.happymeal.domain.board.controller;
 
 import com.ssafy.happymeal.domain.board.dto.*;
 import com.ssafy.happymeal.domain.board.service.BoardService;
+import com.ssafy.happymeal.domain.commonDto.PageResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.Getter;
@@ -19,25 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-// 가상의 PageResponse (페이징된 결과를 담는 클래스)
-@Getter
-@Setter
-class PageResponse<T> {
-    public List<T> content;
-    public int pageNumber;
-    public int pageSize;
-    public long totalElements;
-    public int totalPages;
 
-    public PageResponse(List<T> content, int pageNumber, int pageSize, long totalElements) {
-        this.content = content;
-        this.pageNumber = pageNumber;
-        this.pageSize = pageSize;
-        this.totalElements = totalElements;
-        this.totalPages = (int) Math.ceil((double) totalElements / pageSize); // 한 페이지에 몇개 보여줄지에 따라 전체 페이지 수 계산
-    }
-
-}
 
 @Slf4j
 @RestController

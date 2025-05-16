@@ -1,16 +1,25 @@
 package com.ssafy.happymeal.domain.food.controller;
 
+import com.ssafy.happymeal.domain.commonDto.PageResponse;
+import com.ssafy.happymeal.domain.food.dto.FoodNameSearchCriteria;
+import com.ssafy.happymeal.domain.food.dto.FoodPagingSortCriteria;
 import com.ssafy.happymeal.domain.food.entity.Food; // Food DTO로 사용
 import com.ssafy.happymeal.domain.food.service.FoodService;
 import com.ssafy.happymeal.domain.food.service.FoodServiceImpl;
+import io.swagger.v3.oas.annotations.Parameter;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 // import org.springframework.security.access.prepost.PreAuthorize; // Spring Security 사용 시 권한 관리
 
 import java.util.List;
+
+
 
 @Slf4j // 로깅을 위한 Lombok 어노테이션
 @RestController
@@ -26,28 +35,49 @@ public class FoodController {
      * 접근 권한: ALL (요구사항에 명시됨)
      */
     @GetMapping("/search")
-    public ResponseEntity<List<Food>> searchFoodsByName(@RequestParam String name) {
-        log.info("음식 정보 검색 요청: name={}", name);
-        List<Food> foods = foodService.searchFoodsByName(name);
-        if (foods.isEmpty()) {
-            log.info("검색된 음식 정보 없음: name={}", name);
-            return ResponseEntity.noContent().build(); // 204 No Content
-        }
-        log.info("음식 정보 검색 완료: {} 건", foods.size());
-        return ResponseEntity.ok(foods); // 200 OK
-    }
+    public ResponseEntity<PageResponse<Food>> searchFoodsByName(
+            @Parameter(description = "검색할 음식 이름 키워드", required = true, example = "닭가슴살") @RequestParam String name,
+            @Parameter(description = "정렬 기준 (예: name, calories DESC, protein ASC,fat DESC)", example = "name ASC") @RequestParam(defaultValue = "name ASC") String sortBy,
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 당 아이템 수", example = "10") @RequestParam(defaultValue = "10") int size) {
+        log.info("음식 정보 검색 요청: name={}, sortBy={}, page={}, size={}", name, sortBy, page, size);
 
+        FoodNameSearchCriteria criteria = new FoodNameSearchCriteria(name, sortBy, page, size);
+        Page<Food> foodPage = foodService.searchFoodsByName(criteria);
+
+        if (foodPage == null || foodPage.getContent().isEmpty()) {
+            log.info("검색된 음식 정보 없음: name={}", name);
+            return ResponseEntity.noContent().build();
+        }
+
+        PageResponse<Food> response = new PageResponse<>(
+                foodPage.getContent(), foodPage.getNumber(), foodPage.getSize(), foodPage.getTotalElements()
+        );
+        return ResponseEntity.ok(response);
+    }
     /**
      * 모든 음식 정보 조회
      * GET /api/v1/foods
      * 접근 권한: ALL (일반적으로 모든 사용자 또는 인증된 사용자)
      */
     @GetMapping
-    public ResponseEntity<List<Food>> getAllFoods() {
-        log.info("모든 음식 정보 조회 요청");
-        List<Food> foods = foodService.getAllFoods();
-        log.info("모든 음식 정보 조회 완료: {} 건", foods.size());
-        return ResponseEntity.ok(foods); // 200 OK
+    public ResponseEntity<PageResponse<Food>> getAllFoods(
+            @Parameter(description = "정렬 기준 (예: name, calories DESC)", example = "name ASC") @RequestParam(defaultValue = "name ASC") String sortBy,
+            @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "페이지 당 아이템 수", example = "10") @RequestParam(defaultValue = "10") int size) {
+        log.info("모든 음식 정보 조회 요청: sortBy={}, page={}, size={}", sortBy, page, size);
+
+        FoodPagingSortCriteria criteria = new FoodPagingSortCriteria(sortBy, page, size);
+        Page<Food> foodPage = foodService.getAllFoods(criteria);
+
+        if (foodPage == null || foodPage.getContent().isEmpty()) {
+            log.info("등록된 음식 정보 없음");
+            return ResponseEntity.noContent().build();
+        }
+        PageResponse<Food> response = new PageResponse<>(
+                foodPage.getContent(), foodPage.getNumber(), foodPage.getSize(), foodPage.getTotalElements()
+        );
+        return ResponseEntity.ok(response);
     }
 
     /**

@@ -72,6 +72,51 @@ public interface FoodDAO {
     @Delete("DELETE FROM Food WHERE food_id = #{foodId}")
     int delete(@Param("foodId") Long foodId);
 
+    // 이름으로 검색 (페이징 및 정렬 추가)
+    @Select("<script>" +
+            "SELECT " + BASE_COLUMNS + " FROM Food " +
+            "<where>" +
+            "   <if test='params.name != null and params.name != \"\"'>" +
+            "       AND name LIKE CONCAT('%', #{params.name}, '%')" +
+            "   </if>" +
+            "</where>" +
+            "<if test='params.orderByClause != null and params.orderByClause != \"\"'>" +
+            "   ORDER BY ${params.orderByClause}" + // SQL Injection 주의: 서비스에서 안전하게 구성
+            "</if>" +
+            "<if test='(params.orderByClause == null or params.orderByClause == \"\")'>" +
+            "   ORDER BY name ASC" + // 기본 정렬
+            "</if>" +
+            " LIMIT #{params.limit} OFFSET #{params.offset}" +
+            "</script>")
+    List<Food> searchByNamePaginatedAndSorted(@Param("params") Map<String, Object> params);
+
+    @Select("<script>" +
+            "SELECT COUNT(*) FROM Food " +
+            "<where>" +
+            "   <if test='name != null and name != \"\"'>" +
+            "       AND name LIKE CONCAT('%', #{name}, '%')" +
+            "   </if>" +
+            "</where>" +
+            "</script>")
+    long countSearchByName(@Param("name") String name);
+
+
+    // 모든 음식 정보 조회 (페이징 및 정렬 추가)
+    @Select("<script>" +
+            "SELECT " + BASE_COLUMNS + " FROM Food" +
+            "<if test='params.orderByClause != null and params.orderByClause != \"\"'>" +
+            "   ORDER BY ${params.orderByClause}" + // SQL Injection 주의
+            "</if>" +
+            "<if test='(params.orderByClause == null or params.orderByClause == \"\")'>" +
+            "   ORDER BY name ASC" + // 기본 정렬
+            "</if>" +
+            " LIMIT #{params.limit} OFFSET #{params.offset}" +
+            "</script>")
+    List<Food> findAllPaginatedAndSorted(@Param("params") Map<String, Object> params);
+
+    @Select("SELECT COUNT(*) FROM Food")
+    long countAll();
+
     /**
      * 간결화된 추천 음식 조회 메소드 (영양소 수치 기반 필터링, 랜덤 3개)
      */

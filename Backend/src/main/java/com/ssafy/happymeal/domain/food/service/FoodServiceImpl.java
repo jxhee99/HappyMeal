@@ -1,101 +1,158 @@
 package com.ssafy.happymeal.domain.food.service;
 
 import com.ssafy.happymeal.domain.food.dao.FoodDAO;
+import com.ssafy.happymeal.domain.food.dto.FoodNameSearchCriteria;
+import com.ssafy.happymeal.domain.food.dto.FoodPagingSortCriteria;
 import com.ssafy.happymeal.domain.food.entity.Food;
-import jakarta.persistence.EntityNotFoundException; // 표준 예외 또는 사용자 정의 예외 사용
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page; // Spring Data Page
+import org.springframework.data.domain.PageImpl; // Spring Data Page 구현체
+import org.springframework.data.domain.PageRequest; // 페이징 정보 객체
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils; // StringUtils 사용
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set; // 허용된 정렬 필드 검증용
 
-@Slf4j // 로그 사용을 위한 Lombok 어노테이션
-@Service // 이 클래스가 Spring의 서비스 구현체임을 나타냅니다.
+@Slf4j
+@Service
 @RequiredArgsConstructor
-public class FoodServiceImpl implements FoodService { // FoodService 인터페이스 구현
+@Transactional(readOnly = true)
+public class FoodServiceImpl implements FoodService {
 
     private final FoodDAO foodDAO;
+    private static final int MAX_PAGE_SIZE = 100; // 최대 페이지 크기 제한
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<Food> searchFoodsByName(String name) {
-        if (name == null || name.trim().isEmpty()) {
-            return foodDAO.findAll();
+    // 허용된 정렬 필드명 (SQL Injection 방지용 화이트리스트)
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("name", "calories", "protein", "fat", "sugar", "carbs", "category", "create_at", "update_at");
+
+    private String buildOrderByClause(String sortByWithDirection) {
+        if (!StringUtils.hasText(sortByWithDirection)) {
+            return "name ASC"; // 기본 정렬
         }
-        return foodDAO.searchByName(name);
+        // 예: "name,calories DESC" -> "name ASC, calories DESC"
+        // sortBy=name:asc,calories:desc
+        StringBuilder orderByClause = new StringBuilder();
+        String[] sortParams = sortByWithDirection.split(",");
+        for (String sortParam : sortParams) {
+            String[] parts = sortParam.trim().split("\\s+"); // 공백 기준 분리 또는 ":" 기준 분리
+            String field = parts[0].toLowerCase();
+            String direction = (parts.length > 1 && "desc".equalsIgnoreCase(parts[1])) ? "DESC" : "ASC";
+
+            if (ALLOWED_SORT_FIELDS.contains(field)) {
+                // DB 컬럼명으로 변환 (필요시)
+                // 예: create_at -> createdAt, 여기서는 mapUnderscoreToCamelCase가 DB->Java, Java->DB는 아니므로 직접 사용
+                // DB 컬럼명이 스네이크 케이스라면 필드명도 스네이크로 변환해야 함.
+                // 여기서는 params.orderByClause에 Java 필드명 기준(카멜)으로 넣고, DB가 알아서 매핑하도록 하거나
+                // 아니면 DB 컬럼명 기준으로만 정렬 가능하도록 명시. 여기서는 DB 컬럼명 기준 가정
+                String dbColumn = field; // 간단히 Java 필드명=DB 컬럼명(스네이크 변환 후) 가정
+                // 만약 Java 필드명(카멜)을 DB 컬럼명(스네이크)으로 변환해야 한다면 로직 추가
+                // 예를 들어 field "createdAt" -> DB "create_at"
+
+                if (orderByClause.length() > 0) {
+                    orderByClause.append(", ");
+                }
+                orderByClause.append(dbColumn).append(" ").append(direction);
+            } else {
+                log.warn("Invalid sort field provided: {}. Ignoring.", field);
+            }
+        }
+        return orderByClause.length() > 0 ? orderByClause.toString() : "name ASC"; // 유효한 정렬 없으면 기본값
+    }
+
+
+    @Override
+    public Page<Food> searchFoodsByName(FoodNameSearchCriteria criteria) {
+        log.info("음식 이름 검색 서비스: name={}, sortBy={}, page={}, size={}",
+                criteria.getName(), criteria.getSortBy(), criteria.getPage(), criteria.getSize());
+
+        int pageSize = Math.min(criteria.getSize(), MAX_PAGE_SIZE); // 페이지 크기 제한
+        int offset = criteria.getPage() * pageSize;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("name", criteria.getName());
+        params.put("orderByClause", buildOrderByClause(criteria.getSortBy()));
+        params.put("limit", pageSize);
+        params.put("offset", offset);
+
+        List<Food> foods = foodDAO.searchByNamePaginatedAndSorted(params);
+        long totalElements = foodDAO.countSearchByName(criteria.getName());
+
+        return new PageImpl<>(foods, PageRequest.of(criteria.getPage(), pageSize), totalElements);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Food> getAllFoods() {
-        return foodDAO.findAll();
+    public Page<Food> getAllFoods(FoodPagingSortCriteria criteria) {
+        log.info("모든 음식 조회 서비스: sortBy={}, page={}, size={}",
+                criteria.getSortBy(), criteria.getPage(), criteria.getSize());
+
+        int pageSize = Math.min(criteria.getSize(), MAX_PAGE_SIZE);
+        int offset = criteria.getPage() * pageSize;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("orderByClause", buildOrderByClause(criteria.getSortBy()));
+        params.put("limit", pageSize);
+        params.put("offset", offset);
+
+        List<Food> foods = foodDAO.findAllPaginatedAndSorted(params);
+        long totalElements = foodDAO.countAll();
+
+        return new PageImpl<>(foods, PageRequest.of(criteria.getPage(), pageSize), totalElements);
     }
 
+    // --- 기존 단건 조회, CUD, 추천 API용 서비스 메소드는 유지 ---
     @Override
-    @Transactional(readOnly = true)
     public Food getFoodById(Long foodId) {
         return foodDAO.findById(foodId)
                 .orElseThrow(() -> new EntityNotFoundException("Food not found with id: " + foodId));
     }
 
     @Override
-    @Transactional
-    public Food addFood(Food foodDto) {
-        foodDAO.save(foodDto);
-        return foodDto;
+    @Transactional // 쓰기 작업
+    public Food addFood(Food food) {
+        foodDAO.save(food);
+        return food; // foodId가 설정된 객체
     }
 
     @Override
-    @Transactional
+    @Transactional // 쓰기 작업
     public Food updateFood(Long foodId, Food foodDetailsToUpdate) {
         foodDAO.findById(foodId)
                 .orElseThrow(() -> new EntityNotFoundException("Food not found with id: " + foodId + ". Cannot update."));
-
-        foodDetailsToUpdate.setFoodId(foodId);
-
+        foodDetailsToUpdate.setFoodId(foodId); // ID 설정 확실히
         int affectedRows = foodDAO.update(foodDetailsToUpdate);
-        if (affectedRows == 0) {
-            throw new RuntimeException("Failed to update food with id: " + foodId + ". No rows affected.");
-        }
-        return foodDAO.findById(foodId)
-                .orElseThrow(() -> new EntityNotFoundException("Food disappeared after update with id: " + foodId));
+        if (affectedRows == 0) throw new RuntimeException("Food update failed for id: " + foodId);
+        return foodDAO.findById(foodId).orElseThrow(); // 업데이트된 정보 다시 조회
     }
 
     @Override
-    @Transactional
+    @Transactional // 쓰기 작업
     public void deleteFood(Long foodId) {
         foodDAO.findById(foodId)
                 .orElseThrow(() -> new EntityNotFoundException("Food not found with id: " + foodId + ". Cannot delete."));
-
-        int affectedRows = foodDAO.delete(foodId);
-        // 삭제 시 affectedRows가 0인 경우는 findById에서 이미 걸러졌거나,
-        // 동시에 다른 트랜잭션에서 삭제된 경우일 수 있습니다.
-        // 필요하다면 로깅 또는 추가적인 예외 처리를 할 수 있습니다.
-        if (affectedRows == 0) {
-            System.err.println("Attempted to delete non-existing or already deleted food with id: " + foodId + " (concurrency issue or already handled by findById check)");
-        }
+        foodDAO.delete(foodId);
     }
 
     @Override
-    public List<Food> getRecommendedFoods(String categoryName) { // 반환 타입 List<Food>로 변경
+    public List<Food> getRecommendedFoods(String categoryName) {
         log.info("Fetching simplified recommendations for category: {}", categoryName);
-
         Map<String, Object> params = new HashMap<>();
-
+        // 카테고리별 영양소 기준치 설정 ... (이전 답변과 동일)
         switch (categoryName.toLowerCase()) {
             case "diet":
-                log.debug("Applying simplified 'diet' criteria");
                 params.put("maxCalories", new BigDecimal("150"));
                 params.put("minProtein", new BigDecimal("10"));
                 params.put("maxFat", new BigDecimal("10").subtract(BigDecimal.valueOf(0.01)));
                 params.put("maxSugar", new BigDecimal("5").subtract(BigDecimal.valueOf(0.01)));
                 break;
             case "healthy":
-                log.debug("Applying simplified 'healthy' criteria");
                 params.put("minCalories", new BigDecimal("100"));
                 params.put("maxCalories", new BigDecimal("250"));
                 params.put("minProtein", new BigDecimal("10"));
@@ -104,33 +161,17 @@ public class FoodServiceImpl implements FoodService { // FoodService 인터페�
                 params.put("maxSugar", new BigDecimal("10").subtract(BigDecimal.valueOf(0.01)));
                 break;
             case "bulk-up":
-                log.debug("Applying simplified 'bulk-up' criteria");
                 params.put("minCalories", new BigDecimal("200"));
                 params.put("minProtein", new BigDecimal("15"));
                 params.put("minFat", new BigDecimal("10"));
                 break;
             case "cheating":
-                log.debug("Applying simplified 'cheating' criteria (high calorie)");
                 params.put("minCalories", new BigDecimal("400"));
                 break;
             default:
-                log.warn("Unknown category for simplified recommendation: {}. Returning general random foods.", categoryName);
+                log.warn("Unknown category for simplified recommendation: {}.", categoryName);
                 break;
         }
-
-        // 공통 파라미터는 DAO SQL에 하드코딩 되어 있음 (RAND() LIMIT 3)
-        // DAO가 Map을 받으므로, params에 limit, offset, randomSort를 넣을 필요 없음 (findSimplifiedRandomFoods의 경우)
-        // 만약 DAO의 findSimplifiedRandomFoods가 여전히 limit, offset 등을 params에서 받는다면 아래 코드 필요
-        // params.put("limit", RECOMMENDATION_COUNT);
-        // params.put("offset", 0);
-        // params.put("randomSort", true); // DAO에서 사용한다면
-
-        log.debug("DAO parameters for simplified recommendation: {}", params);
-        // DTO 변환 로직 제거, DAO가 반환하는 엔티티 리스트를 그대로 반환
-        return foodDAO.findRecommendFoods(params);
+        return foodDAO.findRecommendFoods(params); // DAO는 이미 랜덤 3개 반환
     }
-
-    
-
-
 }

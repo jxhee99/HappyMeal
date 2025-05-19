@@ -1,26 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api';
-
-// axios 인스턴스 생성
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// 요청 인터셉터 추가
+// 요청 인터셉터
 axiosInstance.interceptors.request.use(
   (config) => {
-    // localStorage에서 토큰 가져오기
     const token = localStorage.getItem('accessToken');
-    
-    // 토큰이 있으면 헤더에 추가
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
     return config;
   },
   (error) => {
@@ -28,7 +21,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// 응답 인터셉터 추가
+// 응답 인터셉터
 axiosInstance.interceptors.response.use(
   (response) => {
     return response;
@@ -43,7 +36,7 @@ axiosInstance.interceptors.response.use(
       try {
         // 리프레시 토큰으로 새로운 액세스 토큰 발급
         const refreshToken = localStorage.getItem('refreshToken');
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+        const response = await axios.post('http://localhost:8080/api/auth/refresh', {
           refreshToken,
         });
 

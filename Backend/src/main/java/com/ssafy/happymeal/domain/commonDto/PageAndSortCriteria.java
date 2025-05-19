@@ -1,7 +1,6 @@
-package com.ssafy.happymeal.domain.board.dto;
+package com.ssafy.happymeal.domain.commonDto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 

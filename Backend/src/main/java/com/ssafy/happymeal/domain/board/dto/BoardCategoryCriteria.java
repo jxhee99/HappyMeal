@@ -1,5 +1,6 @@
 package com.ssafy.happymeal.domain.board.dto;
 
+import com.ssafy.happymeal.domain.commonDto.PageAndSortCriteria;
 import lombok.Getter;
 
 /* 카테고리 기반 팔터링용

@@ -12,15 +12,6 @@ public class UserDto {
     private Long userId;
     private String nickName;
     private String email;
-    private String role;
+    private String profileImg;
 
-
-    public static UserDto fromEntity(User user) {
-        return UserDto.builder()
-                .userId(user.getUserId())
-                .nickName(user.getNickname())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .build();
-    }
 }

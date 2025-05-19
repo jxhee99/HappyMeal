@@ -1,5 +1,6 @@
-package com.ssafy.happymeal.domain.board.dto;
+package com.ssafy.happymeal.domain.user.dto;
 
+import com.ssafy.happymeal.domain.commonDto.PageAndSortCriteria;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,15 +10,13 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 @Builder
-public class BoardResponseDto {
+public class MyBoardResponseDto{
     private Long boardId;
-    private Long userId;
-    private String nickName;
     private Integer categoryId;
     private String title;
     private Timestamp createAt;
     private Timestamp updateAt;
-    private int views; // 조회수
-    private int likesCount; // 좋아요 수
-    private int commentsCount; // 댓글 수
+    private int views;
+    private int likesCount;
+    private int comments_count;
 }

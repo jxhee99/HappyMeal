@@ -1,5 +1,6 @@
 package com.ssafy.happymeal.domain.board.dto;
 
+import com.ssafy.happymeal.domain.commonDto.PageAndSortCriteria;
 import lombok.Getter;
 
 /* 작성자 검색용 */

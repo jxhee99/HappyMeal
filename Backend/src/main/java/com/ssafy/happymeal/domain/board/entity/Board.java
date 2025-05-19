@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 public class Board {
     private Long boardId;
     private Long userId;
-    private int categoryId;
+    private Integer categoryId; // null을 허용하므로 int가 아닌 Integer
     private String title;
     private Timestamp createAt;
     private Timestamp updateAt;

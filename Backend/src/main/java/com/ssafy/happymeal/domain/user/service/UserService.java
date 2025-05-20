@@ -1,9 +1,6 @@
 package com.ssafy.happymeal.domain.user.service;
 
-import com.ssafy.happymeal.domain.user.dto.MyBoardResponseDto;
-import com.ssafy.happymeal.domain.user.dto.MyCommentResponseDto;
-import com.ssafy.happymeal.domain.user.dto.MyPageCriteria;
-import com.ssafy.happymeal.domain.user.dto.UserDto;
+import com.ssafy.happymeal.domain.user.dto.*;
 import org.springframework.data.domain.Page;
 
 public interface UserService {
@@ -15,4 +12,6 @@ public interface UserService {
     Page<MyCommentResponseDto> getMyComments(MyPageCriteria criteria);
 
     Page<MyBoardResponseDto> getMyLikes(MyPageCriteria criteria);
+
+    UserDto updateProfile(Long userId, ProfileUpdateRequestDto requestDto);
 }

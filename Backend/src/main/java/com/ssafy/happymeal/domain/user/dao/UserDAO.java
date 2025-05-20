@@ -144,4 +144,12 @@ public interface UserDAO {
             "from BoardLike " +
             "Where user_id=#{userId}")
     Long countMyLikes(MyPageCriteria criteria);
+
+    // 사용자 정보 수정
+    @Update("update User set ")
+    UserDto updateProfile(Long userId);
+
+    // 닉네임 중복 검사
+    @Select("select * from User where nickname=#{newNickname}")
+    Optional<User> findByNickname(String newNickname);
 }

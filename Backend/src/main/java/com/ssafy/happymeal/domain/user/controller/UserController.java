@@ -1,24 +1,20 @@
 package com.ssafy.happymeal.domain.user.controller;
 
 import com.ssafy.happymeal.domain.commonDto.PageResponse;
-import com.ssafy.happymeal.domain.user.dto.MyBoardResponseDto;
-import com.ssafy.happymeal.domain.user.dto.MyCommentResponseDto;
-import com.ssafy.happymeal.domain.user.dto.MyPageCriteria;
-import com.ssafy.happymeal.domain.user.dto.UserDto;
+import com.ssafy.happymeal.domain.user.dto.*;
 import com.ssafy.happymeal.domain.user.entity.User;
 import com.ssafy.happymeal.domain.user.service.UserService;
 import com.ssafy.happymeal.domain.user.service.UserServiceImpl;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -128,6 +124,18 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-
+    /* 마이페이지 사용자 정보(닉네임, 이미지) 수정
+     * PUT api/mypages/profile
+     *  접근 권한: USER */
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            // ProfileUpdateRequestDto에 정의한 유효성 검사가 자동으로 적용되도록 @Valid 추가
+            @Valid @RequestBody ProfileUpdateRequestDto requestDto) {
+        Long userId = Long.parseLong(userDetails.getUsername());
+        log.info("개인 정보 업데이트 요청 아이디 userId={}",userId);
+        UserDto userInfo = userService.updateProfile(userId, requestDto);
+        return ResponseEntity.ok(userInfo);
+    }
 
 }

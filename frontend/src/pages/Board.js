@@ -249,7 +249,7 @@ const Board = () => {
                               variant="outlined"
                             />
                           </TableCell>
-                          <TableCell>{post.nickname}</TableCell>
+                          <TableCell>{post.nickName}</TableCell>
                           <TableCell>
                             <Tooltip title="조회수">
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

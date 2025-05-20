@@ -65,7 +65,7 @@ const Board = () => {
       };
       const response = await BoardService.getBoards(params);
       if (response.data && Array.isArray(response.data.content)) {
-        setPosts(response.data.content);
+        setPosts(response.data.content || []);
         setTotalElements(response.data.totalElements || 0);
       } else {
         setError('서버에서 잘못된 응답을 받았습니다.');
@@ -99,15 +99,25 @@ const Board = () => {
     }
     try {
       setLoading(true);
+      setError('');
       const response = searchType === 'title'
         ? await BoardService.searchByTitle(searchTerm, { page, size: rowsPerPage })
         : await BoardService.searchByAuthor(searchTerm, { page, size: rowsPerPage });
-      setPosts(response.data.content);
-      setTotalElements(response.data.totalElements);
+      
+      if (response.data && Array.isArray(response.data.content)) {
+        setPosts(response.data.content || []);
+        setTotalElements(response.data.totalElements || 0);
+      } else {
+        setError(`'${searchTerm}'에 대한 검색 결과가 없습니다.`);
+        setPosts([]);
+        setTotalElements(0);
+      }
     } catch (error) {
       if (error.response) {
         const errorMessage = error.response.data?.message || '알 수 없는 오류가 발생했습니다.';
         setError(`게시글 검색에 실패했습니다. (${error.response.status}): ${errorMessage}`);
+      } else if (error.request) {
+        setError('서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.');
       } else {
         setError('게시글 검색에 실패했습니다.');
       }
@@ -227,7 +237,7 @@ const Board = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {posts.length > 0 ? (
+                    {posts?.length > 0 ? (
                       posts.map((post) => (
                         <TableRow
                           key={post.boardId}
@@ -238,7 +248,7 @@ const Board = () => {
                           <TableCell>{post.boardId}</TableCell>
                           <TableCell>
                             <Typography variant="body1" noWrap>
-                              {post.title}
+                              {post.title || '제목 없음'}
                             </Typography>
                           </TableCell>
                           <TableCell>
@@ -249,12 +259,12 @@ const Board = () => {
                               variant="outlined"
                             />
                           </TableCell>
-                          <TableCell>{post.nickName}</TableCell>
+                          <TableCell>{post.nickName || '알 수 없음'}</TableCell>
                           <TableCell>
                             <Tooltip title="조회수">
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <VisibilityIcon fontSize="small" />
-                                {post.views}
+                                {post.views || 0}
                               </Box>
                             </Tooltip>
                           </TableCell>
@@ -262,7 +272,7 @@ const Board = () => {
                             <Tooltip title="좋아요">
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <ThumbUpIcon fontSize="small" />
-                                {post.likesCount}
+                                {post.likesCount || 0}
                               </Box>
                             </Tooltip>
                           </TableCell>
@@ -272,7 +282,7 @@ const Board = () => {
                       <TableRow>
                         <TableCell colSpan={6} align="center">
                           <Typography variant="body1" color="text.secondary">
-                            게시글이 없습니다.
+                            {searchTerm ? `'${searchTerm}'에 대한 검색 결과가 없습니다.` : '게시글이 없습니다.'}
                           </Typography>
                         </TableCell>
                       </TableRow>

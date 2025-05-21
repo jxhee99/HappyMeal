@@ -131,6 +131,28 @@ const BoardService = {
       console.error('게시글 좋아요 취소 API 호출 실패:', error);
       throw error;
     }
+  },
+
+  // 댓글 작성
+  createComment: async (boardId, commentData) => {
+    try {
+      const response = await axiosInstance.post(`/boards/${boardId}/comments`, commentData);
+      return response;
+    } catch (error) {
+      console.error('댓글 작성 API 호출 실패:', error);
+      throw error;
+    }
+  },
+
+  // 댓글 목록 조회
+  getBoardComments: async (boardId) => {
+    try {
+      const response = await axiosInstance.get(`/boards/${boardId}/comments`);
+      return response;
+    } catch (error) {
+      console.error('댓글 목록 조회 API 호출 실패:', error);
+      throw error;
+    }
   }
 };
 

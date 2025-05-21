@@ -38,6 +38,8 @@ const BoardDetail = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [liked, setLiked] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyContent, setReplyContent] = useState('');
 
   useEffect(() => {
     console.log('BoardDetail 마운트, id:', id); // 디버깅용 로그
@@ -49,38 +51,40 @@ const BoardDetail = () => {
       return;
     }
 
-    const fetchPostDetail = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError('');
-        console.log('게시글 상세 조회 시작:', { id }); // 디버깅용 로그
-        const response = await BoardService.getBoardDetail(id);
-        console.log('게시글 상세 응답:', response.data); // 디버깅용 로그
-        console.log('게시글 블록 데이터:', response.data.blocks); // 블록 데이터 디버깅
         
-        if (!response.data.blocks || !Array.isArray(response.data.blocks)) {
-          console.warn('블록 데이터가 없거나 배열이 아닙니다:', response.data.blocks);
-        }
+        // 게시글 상세 정보와 댓글을 병렬로 가져옵니다
+        const [boardResponse, commentsResponse] = await Promise.all([
+          BoardService.getBoardDetail(id),
+          BoardService.getBoardComments(id)
+        ]);
+
+        console.log('게시글 상세 응답:', boardResponse.data);
+        console.log('게시글 블록 데이터:', boardResponse.data.blocks);
+        console.log('댓글 조회 응답:', commentsResponse.data);
         
-        setPost(response.data);
-        setComments(response.data.comments || []);
-        setLiked(response.data.liked || false);
+        setPost(boardResponse.data);
+        setComments(commentsResponse.data);
+        setLiked(boardResponse.data.liked || false);
       } catch (error) {
-        console.error('게시글 상세 조회 실패:', error);
+        console.error('데이터 로딩 실패:', error);
         if (error.response) {
           const errorMessage = error.response.data?.message || '알 수 없는 오류가 발생했습니다.';
-          setError(`게시글을 불러오는데 실패했습니다. (${error.response.status}): ${errorMessage}`);
-          console.error('서버 응답:', error.response.data); // 디버깅용 로그
+          setError(`데이터를 불러오는데 실패했습니다. (${error.response.status}): ${errorMessage}`);
+          console.error('서버 응답:', error.response.data);
         } else {
-          setError('게시글을 불러오는데 실패했습니다.');
+          setError('데이터를 불러오는데 실패했습니다.');
         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPostDetail();
-  }, [id]);
+    fetchData();
+  }, [id]); // id가 변경될 때만 실행
 
   const handleLike = async () => {
     if (!id) return;
@@ -116,23 +120,58 @@ const BoardDetail = () => {
     }
   };
 
+  // 댓글 작성 후 목록 새로고침 함수
+  const refreshComments = async () => {
+    try {
+      const response = await BoardService.getBoardComments(id);
+      setComments(response.data);
+    } catch (error) {
+      console.error('댓글 목록 새로고침 실패:', error);
+      setError('댓글 목록을 새로고침하는데 실패했습니다.');
+    }
+  };
+
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim() || !id) return;
 
     try {
-      // TODO: 댓글 작성 API 연동
-      const comment = {
-        id: Date.now(),
+      await BoardService.createComment(id, {
         content: newComment,
-        author: '현재 사용자',
-        createdAt: new Date().toISOString(),
-      };
-      setComments([...comments, comment]);
+        parentCommentId: null
+      });
+      
       setNewComment('');
+      await refreshComments(); // 댓글 목록 새로고침
     } catch (error) {
       console.error('댓글 작성 실패:', error);
       setError('댓글 작성에 실패했습니다.');
+    }
+  };
+
+  // 대댓글 작성 취소
+  const handleCancelReply = () => {
+    setReplyTo(null);
+    setReplyContent('');
+  };
+
+  // 대댓글 작성
+  const handleReplySubmit = async (e, parentCommentId) => {
+    e.preventDefault();
+    if (!replyContent.trim() || !id) return;
+
+    try {
+      await BoardService.createComment(id, {
+        content: replyContent,
+        parentCommentId: parentCommentId
+      });
+      
+      setReplyContent('');
+      setReplyTo(null);
+      await refreshComments(); // 댓글 목록 새로고침
+    } catch (error) {
+      console.error('대댓글 작성 실패:', error);
+      setError('대댓글 작성에 실패했습니다.');
     }
   };
 
@@ -269,7 +308,7 @@ const BoardDetail = () => {
         {/* 댓글 섹션 */}
         <Box>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            댓글 {comments.length}개
+            댓글 {comments.reduce((total, comment) => total + 1 + (comment.replies?.length || 0), 0)}개
           </Typography>
 
           {/* 댓글 작성 폼 */}
@@ -297,35 +336,119 @@ const BoardDetail = () => {
 
           {/* 댓글 목록 */}
           <List>
-            {comments.map((comment) => (
-              <ListItem key={comment.id} alignItems="flex-start">
-                <ListItemAvatar>
-                  <Avatar>{comment.author?.[0]}</Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={comment.author}
-                  secondary={
-                    <>
-                      <Typography
-                        component="span"
-                        variant="body2"
-                        color="text.primary"
-                        sx={{ display: 'block', mb: 0.5 }}
-                      >
-                        {comment.content}
-                      </Typography>
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        color="text.secondary"
-                      >
-                        {new Date(comment.createdAt).toLocaleString()}
-                      </Typography>
-                    </>
-                  }
-                />
+            {console.log('렌더링할 댓글 목록:', comments)} {/* 디버깅용 로그 추가 */}
+            {comments && comments.length > 0 ? (
+              comments.map((comment) => {
+                console.log('현재 렌더링 중인 댓글:', comment); // 디버깅용 로그 추가
+                return (
+                  <React.Fragment key={comment.commentId}>
+                    <ListItem alignItems="flex-start" sx={{ flexDirection: 'column' }}>
+                      <Box sx={{ width: '100%', display: 'flex', alignItems: 'flex-start' }}>
+                        <ListItemAvatar>
+                          <Avatar>{comment.nickname?.[0]}</Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant="subtitle2">{comment.nickname}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {new Date(comment.createAt).toLocaleString('ko-KR')}
+                              </Typography>
+                            </Box>
+                          }
+                          secondary={
+                            <Typography
+                              component="span"
+                              variant="body2"
+                              color="text.primary"
+                              sx={{ display: 'block', mt: 1 }}
+                            >
+                              {comment.content}
+                            </Typography>
+                          }
+                        />
+                        <Button
+                          size="small"
+                          onClick={() => setReplyTo(comment.commentId)}
+                          sx={{ ml: 1 }}
+                        >
+                          답글
+                        </Button>
+                      </Box>
+                      
+                      {/* 대댓글 작성 폼 */}
+                      {replyTo === comment.commentId && (
+                        <Box component="form" onSubmit={(e) => handleReplySubmit(e, comment.commentId)} sx={{ width: '100%', mt: 2, pl: 7 }}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            rows={2}
+                            placeholder="대댓글을 작성하세요..."
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            sx={{ mb: 1 }}
+                          />
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                            <Button
+                              size="small"
+                              onClick={handleCancelReply}
+                            >
+                              취소
+                            </Button>
+                            <Button
+                              type="submit"
+                              variant="contained"
+                              size="small"
+                              disabled={!replyContent.trim()}
+                            >
+                              대댓글 작성
+                            </Button>
+                          </Box>
+                        </Box>
+                      )}
+                      
+                      {/* 대댓글 목록 */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <List sx={{ width: '100%', pl: 4 }}>
+                          {comment.replies.map((reply) => (
+                            <ListItem key={reply.commentId} alignItems="flex-start">
+                              <ListItemAvatar>
+                                <Avatar sx={{ width: 32, height: 32 }}>{reply.nickname?.[0]}</Avatar>
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Typography variant="subtitle2">{reply.nickname}</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {new Date(reply.createAt).toLocaleString('ko-KR')}
+                                    </Typography>
+                                  </Box>
+                                }
+                                secondary={
+                                  <Typography
+                                    component="span"
+                                    variant="body2"
+                                    color="text.primary"
+                                    sx={{ display: 'block', mt: 1 }}
+                                  >
+                                    {reply.content}
+                                  </Typography>
+                                }
+                              />
+                            </ListItem>
+                          ))}
+                        </List>
+                      )}
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                  </React.Fragment>
+                );
+              })
+            ) : (
+              <ListItem>
+                <ListItemText primary="댓글이 없습니다." />
               </ListItem>
-            ))}
+            )}
           </List>
         </Box>
       </Paper>

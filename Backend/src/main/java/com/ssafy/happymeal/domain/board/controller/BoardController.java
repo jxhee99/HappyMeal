@@ -5,6 +5,7 @@ import com.ssafy.happymeal.domain.board.service.BoardService;
 import com.ssafy.happymeal.domain.comment.entity.Comment;
 import com.ssafy.happymeal.domain.commonDto.PageResponse;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -201,5 +202,85 @@ public class BoardController {
         return ResponseEntity.ok(comments);
     }
 
+    /* 게시글 수정
+     * PUT api/boards/{boardId}
+     * 접근 권한: USER */
+    @PutMapping("/{boardId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateBoard(
+            @PathVariable Long boardId,
+            @Valid @RequestBody BoardUpdateRequestDto requestDto,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        Long userId;
+        try {
+            userId = Long.parseLong(userDetails.getUsername());
+        } catch (NumberFormatException e) {
+            log.error("사용자 ID 파싱 오류: username='{}'은 유효한 Long 타입이 아닙니다.", userDetails.getUsername(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Invalid User ID in Token", "message", "토큰의 사용자 ID 형식이 잘못되었습니다."));
+        }
+
+        log.info("게시글 수정 요청 수신 - boardId: {}, userId: {}, title: {}", boardId, userId, requestDto.getTitle());
+        
+        try {
+            BoardDetailResponseDto updatedBoard = boardService.updateBoard(userId, boardId, requestDto);
+            log.info("게시글 수정 완료 - boardId: {}", boardId);
+            return ResponseEntity.ok(updatedBoard);
+        } catch (EntityNotFoundException e) {
+            log.warn("게시글 수정 실패 - 게시글을 찾을 수 없음: boardId={}", boardId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Not Found", "message", e.getMessage()));
+        } catch (IllegalStateException e) {
+            log.warn("게시글 수정 실패 - 권한 없음: boardId={}, userId={}", boardId, userId);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Forbidden", "message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("게시글 수정 중 오류 발생: boardId={}, userId={}", boardId, userId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal Server Error", "message", "서버 내부 처리 중 오류가 발생했습니다."));
+        }
+    }
+
+    /* 게시글 삭제
+     * DELETE api/boards/{boardId}
+     * 접근 권한: USER */
+    @DeleteMapping("/{boardId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> deleteBoard(
+            @PathVariable Long boardId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        Long userId;
+        try {
+            userId = Long.parseLong(userDetails.getUsername());
+        } catch (NumberFormatException e) {
+            log.error("사용자 ID 파싱 오류: username='{}'은 유효한 Long 타입이 아닙니다.", userDetails.getUsername(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Invalid User ID in Token", "message", "토큰의 사용자 ID 형식이 잘못되었습니다."));
+        }
+
+        log.info("게시글 삭제 요청 수신 - boardId: {}, userId: {}", boardId, userId);
+        
+        try {
+            boardService.deleteBoard(userId, boardId);
+            log.info("게시글 삭제 완료 - boardId: {}", boardId);
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException e) {
+            log.warn("게시글 삭제 실패 - 게시글을 찾을 수 없음: boardId={}", boardId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Not Found", "message", e.getMessage()));
+        } catch (IllegalStateException e) {
+            log.warn("게시글 삭제 실패 - 권한 없음: boardId={}, userId={}", boardId, userId);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Forbidden", "message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("게시글 삭제 중 오류 발생: boardId={}, userId={}", boardId, userId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal Server Error", "message", "서버 내부 처리 중 오류가 발생했습니다."));
+        }
+    }
 
 }

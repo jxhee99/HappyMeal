@@ -8,6 +8,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import AppRoutes from './routes';
 import './App.css';
 import Admin from './pages/Admin';
+import BoardEdit from './pages/BoardEdit';
 
 const theme = createTheme({
   palette: {

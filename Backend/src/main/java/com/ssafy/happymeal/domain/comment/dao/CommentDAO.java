@@ -49,4 +49,7 @@ public interface CommentDAO {
             </script>
             """)
     List<CommentResponseDto> findChildRepliesByParentId(@Param("parentCommentIds") List<Long> parentCommentIds);
+
+    @Delete("DELETE FROM Comment WHERE board_id = #{boardId}")
+    int deleteCommentsByBoardId(@Param("boardId") Long boardId);
 }

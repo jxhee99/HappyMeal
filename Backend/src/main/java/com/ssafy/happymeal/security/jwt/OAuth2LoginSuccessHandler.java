@@ -80,10 +80,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String targetUrl = UriComponentsBuilder.fromUriString(frontendRedirectUri)
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
-                .queryParam("userId", userId) // 선택: 사용자 ID도 전달
-                .queryParam("nickname", user.getNickname()) // 선택: 닉네임도 전달
+                .queryParam("userId", userId)
+                .queryParam("nickname", user.getNickname())
+                .queryParam("role", user.getRole())
                 .encode(StandardCharsets.UTF_8)
-//                .queryParam("nickname", encodedNickname) // 선택: 닉네임도 전달
                 .build().toUriString();
 
         // 2. 리디렉션 수행

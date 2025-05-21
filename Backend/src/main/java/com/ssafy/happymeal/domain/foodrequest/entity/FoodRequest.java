@@ -29,6 +29,9 @@ public class FoodRequest {
     private BigDecimal protein;
     private BigDecimal fat;
 
+    private String imgUrl;      // 추가
+
+
     private FoodRequestStatus isRegistered; // ENUM('PENDING', 'APPROVED', 'REJECTED')
     private LocalDateTime createAt;         // create_at (DB default CURRENT_TIMESTAMP)
 

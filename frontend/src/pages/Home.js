@@ -121,7 +121,7 @@ const Home = () => {
         
         const newCategoryFoods = {};
         categories.forEach((category, index) => {
-          newCategoryFoods[category] = results[index];
+          newCategoryFoods[category] = results[index] || [];
         });
         
         setCategoryFoods(newCategoryFoods);

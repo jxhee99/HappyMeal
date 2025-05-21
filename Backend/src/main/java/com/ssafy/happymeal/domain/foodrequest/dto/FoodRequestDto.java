@@ -72,6 +72,7 @@ public class FoodRequestDto {
         private BigDecimal sugar;
         private BigDecimal protein;
         private BigDecimal fat;
+        private String imgUrl;      // 추가
         private FoodRequestStatus isRegistered; // Enum 타입으로 상태 표시
         private LocalDateTime createAt;
         // private String adminComment; // 관리자 코멘트가 있다면 추가

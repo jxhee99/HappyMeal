@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosInstance from './axiosConfig';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -17,7 +18,7 @@ export const foodService = {
 
   getFoodById: async (foodId) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/foods/${foodId}`);
+      const response = await axiosInstance.get(`/foods/${foodId}`);
       return response.data;
     } catch (error) {
       console.error('음식 상세 조회 실패:', error);
@@ -68,13 +69,17 @@ export const foodService = {
     }
   },
 
-  searchFoods: async (name) => {
+  searchFoods: async (searchTerm) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/foods/search`, {
-        params: { name }
+      const response = await axiosInstance.get('/foods/search', {
+        params: { 
+          name: searchTerm,
+          sortBy: 'name ASC',
+          page: 0,
+          size: 10
+        }
       });
-      console.log('음식 검색 응답:', response.data);
-      return response.data;
+      return response.data.content;
     } catch (error) {
       console.error('음식 검색 실패:', error);
       throw error;

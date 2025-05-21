@@ -25,6 +25,8 @@ const MealLogs = () => {
       setError(null);
       setLoading(true);
 
+      console.log('데이터 요청 시작:', date);
+
       // 병렬로 데이터 요청
       const [logsResponse, statsResponse, weeklyStatsResponse] = await Promise.allSettled([
         mealLogService.getMealLogsByDate(date),
@@ -34,26 +36,32 @@ const MealLogs = () => {
 
       // 각 응답 처리
       if (logsResponse.status === 'fulfilled') {
+        console.log('식단 기록 응답:', logsResponse.value);
         setMealLogs(logsResponse.value || []);
       } else {
         console.error('식단 기록 조회 실패:', logsResponse.reason);
+        setError('식단 기록을 불러오는데 실패했습니다.');
       }
 
       if (statsResponse.status === 'fulfilled') {
+        console.log('일일 통계 응답:', statsResponse.value);
         setDailyStats(statsResponse.value || null);
       } else {
         console.error('일일 통계 조회 실패:', statsResponse.reason);
+        setError('일일 통계를 불러오는데 실패했습니다.');
       }
 
       if (weeklyStatsResponse.status === 'fulfilled') {
+        console.log('주간 통계 응답:', weeklyStatsResponse.value);
         setWeeklyStats(weeklyStatsResponse.value || []);
       } else {
         console.error('주간 통계 조회 실패:', weeklyStatsResponse.reason);
+        setError('주간 통계를 불러오는데 실패했습니다.');
       }
 
     } catch (err) {
+      console.error('데이터 요청 중 에러 발생:', err);
       setError('데이터를 불러오는데 실패했습니다.');
-      console.error('Error fetching meal log data:', err);
     } finally {
       setLoading(false);
     }
@@ -66,6 +74,10 @@ const MealLogs = () => {
 
   const handleDateSelect = (date) => {
     setSelectedDate(date);
+  };
+
+  const handleMealLogAdded = () => {
+    fetchData(selectedDate);
   };
 
   return (
@@ -86,7 +98,11 @@ const MealLogs = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              <RecentMeals selectedDate={selectedDate} mealLogs={mealLogs} />
+              <RecentMeals 
+                selectedDate={selectedDate} 
+                mealLogs={mealLogs} 
+                onMealLogAdded={handleMealLogAdded}
+              />
             )}
           </Paper>
         </Grid>

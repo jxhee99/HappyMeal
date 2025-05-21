@@ -66,16 +66,16 @@ export const mealLogService = {
       const response = await axiosInstance.delete(`/meallogs/${logId}`);
       return response.data;
     } catch (error) {
-      console.error('식단 기록 삭제 실패:', error);
+      console.error('식단 삭제 실패:', error);
       throw error;
     }
   },
 
-  // 최근 식단 기록 조회 (전체 조회 후 최근 5개만 반환)
+  // 최근 식단 기록 조회
   getRecentMealLogs: async () => {
     try {
       const response = await axiosInstance.get('/meallogs');
-      return response.data.slice(0, 5); // 최근 5개만 반환
+      return response.data.slice(0, 5);
     } catch (error) {
       console.error('최근 식단 기록 조회 실패:', error);
       throw error;
@@ -105,6 +105,17 @@ export const mealLogService = {
       return response.data;
     } catch (error) {
       console.error('주간 식단 통계 조회 실패:', error);
+      throw error;
+    }
+  },
+
+  // 식단 기록 수정
+  updateMealLog: async (mealLogId, mealLogData) => {
+    try {
+      const response = await axiosInstance.put(`/meallogs/${mealLogId}`, mealLogData);
+      return response.data;
+    } catch (error) {
+      console.error('식단 수정 실패:', error);
       throw error;
     }
   }

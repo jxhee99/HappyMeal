@@ -18,7 +18,7 @@ public class CommentResponseDto {
     private Long commentId;
     private Long boardId;
     private Long userId;
-    private long parentCommentId;
+    private Long parentCommentId;
     private String nickname;
     private String content;
     private Timestamp createAt;

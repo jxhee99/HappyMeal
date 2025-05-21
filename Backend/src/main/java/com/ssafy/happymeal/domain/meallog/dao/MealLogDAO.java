@@ -33,7 +33,8 @@ public interface MealLogDAO {
     @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, m.img_url AS imgUrl, " +
             "m.meal_type AS mealType, m.quantity, " +
             "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
-            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
+            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " +
+            "m.user_id AS userId " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id = #{userId}")
@@ -43,7 +44,8 @@ public interface MealLogDAO {
     @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, m.img_url AS imgUrl, " +
             "m.meal_type AS mealType, m.quantity, " +
             "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
-            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
+            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " +
+            "m.user_id AS userId " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id = #{userId} AND m.meal_date = #{mealDate}")
@@ -73,7 +75,8 @@ public interface MealLogDAO {
     @Select("Select m.log_id AS logId, f.name AS foodName, f.food_id AS foodId, m.img_url AS imgUrl, " +
             "m.meal_type AS mealType, m.quantity, " +
             "f.calories*m.quantity/100 AS calories, f.carbs*m.quantity/100 AS carbs, f.sugar*m.quantity/100 AS sugar, " +
-            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
+            "f.protein*m.quantity/100 AS protein, f.fat*m.quantity/100 AS fat " +
+            "m.user_id AS userId " + // SELECT 컬럼과 DTO 필드가 정확히 일치해야 하기 때문에 Alias를 사용
             "From MealLog m " +
             "Join Food f ON m.food_id = f.food_id " +
             "Where m.user_id = #{userId} AND m.log_id = #{logId}")
@@ -85,4 +88,8 @@ public interface MealLogDAO {
     void deleteMealLog(Long userId, Long logId);
 
 
+    @Update("update MealLog " +
+            "set food_id=#{foodId}, meal_date=#{mealDate}, meal_type=#{mealType}, quantity=#{quantity}, img_url=#{imgUrl} " +
+            "where user_id=#{userId}")
+    int updateMealLog(MealLog mealLog);
 }

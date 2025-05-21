@@ -1,6 +1,7 @@
 package com.ssafy.happymeal.domain.meallog.dto;
 
 import com.ssafy.happymeal.domain.meallog.entity.MealLog;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,8 @@ import java.time.LocalDate;
 // 식단 기록 저장용 DTO
 public class MealLogDto {
     private String mealDate; // 타입 : LocalDate
-    private String mealType;
+    @NotNull(message="식사유형을 선택해주세요")
+    private MealType mealType;
     private Long foodId;
     private BigDecimal quantity;
     private String imgUrl;

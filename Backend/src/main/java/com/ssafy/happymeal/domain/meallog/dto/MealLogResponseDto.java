@@ -16,12 +16,13 @@ public class MealLogResponseDto {
     private String foodName; // 조회 시 음식 반환을 위해 사용
     private Long foodId;
     private String imgUrl;
-    private String mealType;
+    private MealType mealType; // enum MealType 객체로
     private BigDecimal quantity;
     private BigDecimal calories;
     private BigDecimal carbs;
     private BigDecimal sugar;
     private BigDecimal protein;
     private BigDecimal fat;
+    private Long userId;
 
 }

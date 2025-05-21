@@ -1,8 +1,10 @@
 package com.ssafy.happymeal.domain.meallog.service;
 
 import com.ssafy.happymeal.domain.meallog.dto.MealLogDto;
+import com.ssafy.happymeal.domain.meallog.dto.MealLogRequestDto;
 import com.ssafy.happymeal.domain.meallog.dto.MealLogResponseDto;
 import com.ssafy.happymeal.domain.meallog.dto.MealLogStatsDto;
+import com.ssafy.happymeal.domain.meallog.entity.MealLog;
 import org.apache.ibatis.javassist.NotFoundException;
 
 import java.time.LocalDate;
@@ -23,4 +25,6 @@ public interface MealLogService {
     MealLogResponseDto getDetailMealLog(Long userId, Long logId) throws NotFoundException;
 
     List<MealLogStatsDto> getWeeklyMealLogStats(Long userId, LocalDate endDate);
+
+    void updateMealLog(Long userId, Long logId, MealLogRequestDto requestDto);
 }

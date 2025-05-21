@@ -296,26 +296,28 @@ const MyPage = () => {
                               </Typography>
                             }
                             secondary={
-                              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                                <Chip
-                                  size="small"
-                                  label={`조회수 ${post.views}`}
-                                  variant="outlined"
-                                />
-                                <Chip
-                                  size="small"
-                                  label={`좋아요 ${post.likes_count}`}
-                                  variant="outlined"
-                                />
-                                <Chip
-                                  size="small"
-                                  label={`댓글 ${post.commentsCount}`}
-                                  variant="outlined"
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                  {formatDate(post.createAt)}
-                                </Typography>
-                              </Box>
+                              <Typography component="span" variant="body2">
+                                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                                  <Chip
+                                    size="small"
+                                    label={`조회수 ${post.views}`}
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    size="small"
+                                    label={`좋아요 ${post.likes_count}`}
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    size="small"
+                                    label={`댓글 ${post.commentsCount}`}
+                                    variant="outlined"
+                                  />
+                                  <Typography component="span" variant="body2" color="text.secondary">
+                                    {formatDate(post.createAt)}
+                                  </Typography>
+                                </Box>
+                              </Typography>
                             }
                           />
                         </ListItem>
@@ -446,26 +448,28 @@ const MyPage = () => {
                               </Typography>
                             }
                             secondary={
-                              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                                <Chip
-                                  size="small"
-                                  label={`조회수 ${post.views}`}
-                                  variant="outlined"
-                                />
-                                <Chip
-                                  size="small"
-                                  label={`좋아요 ${post.likes_count}`}
-                                  variant="outlined"
-                                />
-                                <Chip
-                                  size="small"
-                                  label={`댓글 ${post.commentsCount}`}
-                                  variant="outlined"
-                                />
-                                <Typography variant="body2" color="text.secondary">
-                                  {formatDate(post.createAt)}
-                                </Typography>
-                              </Box>
+                              <Typography component="span" variant="body2">
+                                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                                  <Chip
+                                    size="small"
+                                    label={`조회수 ${post.views}`}
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    size="small"
+                                    label={`좋아요 ${post.likes_count}`}
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    size="small"
+                                    label={`댓글 ${post.commentsCount}`}
+                                    variant="outlined"
+                                  />
+                                  <Typography component="span" variant="body2" color="text.secondary">
+                                    {formatDate(post.createAt)}
+                                  </Typography>
+                                </Box>
+                              </Typography>
                             }
                           />
                           <ListItemSecondaryAction>

@@ -20,7 +20,7 @@ CREATE TABLE User (
 CREATE TABLE Food (
                       food_id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '음식 고유 PK ID',
                       name VARCHAR(100) NOT NULL COMMENT '음식 이름',
-                      category VARCHAR(20) NOT NULL COMMENT '음식 분류',
+                      category VARCHAR(20) NULL COMMENT '음식 분류',
                       serving_size DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '1회 제공량',
                       unit VARCHAR(10) NOT NULL DEFAULT '' COMMENT '단위 (예: g, ml, 개)',
                       calories DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '칼로리 (100g 기준)',
@@ -47,6 +47,7 @@ CREATE TABLE FoodRequest (
                              sugar DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '당류 (g)', -- 필수 추가 제안
                              protein DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '단백질 (g)',
                              fat DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '지방 (g)',
+                            img_url VARCHAR(512) NULL COMMENT '음식 대표 이미지 URL', 
                              is_registered ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING' COMMENT '등록 처리 여부',
     -- admin_comment TEXT NULL COMMENT '관리자 의견 또는 거절 사유 (선택적 추가)',
                              create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '요청 생성 일시',

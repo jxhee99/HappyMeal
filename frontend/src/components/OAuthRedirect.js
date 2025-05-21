@@ -14,8 +14,11 @@ export const OAuthRedirect = () => {
         const refreshToken = params.get('refreshToken');
         const userId = params.get('userId');
         const nickname = params.get('nickname');
+        const role = params.get('role');
+        
+        console.log('OAuth Redirect - 받은 role 값:', role);  // role 값 확인
 
-        if (!accessToken || !refreshToken || !userId || !nickname) {
+        if (!accessToken || !refreshToken || !userId || !nickname || !role) {
           throw new Error('Required parameters missing');
         }
 
@@ -24,10 +27,13 @@ export const OAuthRedirect = () => {
         localStorage.setItem('refreshToken', refreshToken);
         
         // 사용자 정보 저장
-        localStorage.setItem('user', JSON.stringify({
+        const userInfo = {
           userId,
-          nickname
-        }));
+          nickname,
+          role
+        };
+        console.log('localStorage에 저장할 사용자 정보:', userInfo);
+        localStorage.setItem('user', JSON.stringify(userInfo));
 
         // 메인 페이지로 리디렉션
         navigate('/');

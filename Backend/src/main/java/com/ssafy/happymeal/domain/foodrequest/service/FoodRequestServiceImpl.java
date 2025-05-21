@@ -4,12 +4,15 @@ import com.ssafy.happymeal.domain.foodrequest.constant.FoodRequestStatus;
 import com.ssafy.happymeal.domain.foodrequest.dao.FoodRequestDAO;
 import com.ssafy.happymeal.domain.foodrequest.dto.FoodRequestDto;
 import com.ssafy.happymeal.domain.foodrequest.entity.FoodRequest;
+import com.ssafy.happymeal.domain.food.entity.Food;
+import com.ssafy.happymeal.domain.food.service.FoodService;
 import jakarta.persistence.EntityNotFoundException; // 이 부분을 사용합니다.
 // import com.ssafy.happymeal.global.error.exception.AccessDeniedException; // 필요시 사용
 // import com.ssafy.happymeal.domain.user.dao.UserDAO;
 // import com.ssafy.happymeal.domain.user.entity.User;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +20,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FoodRequestServiceImpl implements FoodRequestService {
 
     private final FoodRequestDAO foodRequestDAO;
+    private final FoodService foodService;
     // private final UserDAO userDAO;
 
     @Override
@@ -84,12 +89,37 @@ public class FoodRequestServiceImpl implements FoodRequestService {
     @Transactional
     public FoodRequestDto.Response updateFoodRequestStatus(Long foodRequestId, FoodRequestDto.UpdateStatus updateStatusDto) {
         FoodRequest foodRequest = foodRequestDAO.findById(foodRequestId)
-                .orElseThrow(() -> new EntityNotFoundException("FoodRequest not found with id: " + foodRequestId + " for status update.")); // 변경
+                .orElseThrow(() -> new EntityNotFoundException("FoodRequest not found with id: " + foodRequestId + " for status update."));
 
+        // 상태 업데이트
         foodRequestDAO.updateStatus(foodRequestId, updateStatusDto.getIsRegistered());
 
+        // 승인된 경우 Food로 등록
+        if (updateStatusDto.getIsRegistered() == FoodRequestStatus.APPROVED) {
+            Food food = Food.builder()
+                    .name(foodRequest.getName())
+                    .category(foodRequest.getCategory())
+                    .servingSize(foodRequest.getServingSize())
+                    .unit(foodRequest.getUnit())
+                    .calories(foodRequest.getCalories())
+                    .carbs(foodRequest.getCarbs())
+                    .sugar(foodRequest.getSugar())
+                    .protein(foodRequest.getProtein())
+                    .fat(foodRequest.getFat())
+                    .imgUrl(foodRequest.getImgUrl())
+                    .build();
+
+            try {
+                foodService.addFood(food);
+                log.info("FoodRequest 승인 및 Food 등록 완료: foodRequestId={}, foodName={}", foodRequestId, food.getName());
+            } catch (Exception e) {
+                log.error("Food 등록 실패: foodRequestId={}, error={}", foodRequestId, e.getMessage());
+                throw new RuntimeException("Food 등록 중 오류가 발생했습니다.", e);
+            }
+        }
+
         FoodRequest updatedFoodRequest = foodRequestDAO.findById(foodRequestId)
-                .orElseThrow(() -> new EntityNotFoundException("FoodRequest not found with id: " + foodRequestId + " (after status update attempt)")); // 변경
+                .orElseThrow(() -> new EntityNotFoundException("FoodRequest not found with id: " + foodRequestId + " (after status update attempt)"));
         return convertToResponseDto(updatedFoodRequest);
     }
 

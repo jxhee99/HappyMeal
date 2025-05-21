@@ -24,14 +24,38 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const handleMyPageClick = (e) => {
+    e.preventDefault();
+    console.log('현재 사용자 정보:', user);
+    console.log('인증 상태:', isAuthenticated);
+    console.log('사용자 역할:', user?.role);
+    
+    if (!isAuthenticated) {
+      console.log('로그인되지 않은 사용자, 로그인 페이지로 이동');
+      navigate('/login');
+      return;
+    }
+    
+    if (user?.role === 'ADMIN') {
+      console.log('관리자 사용자, 관리자 페이지로 이동');
+      navigate('/admin');
+    } else {
+      console.log('일반 사용자, 마이페이지로 이동');
+      navigate('/mypage');
+    }
+  };
+
   const getMenuItems = () => {
     const baseItems = [
       { text: '홈', path: '/' },
       { text: '음식', path: '/foods' },
       { text: '식단 기록', path: '/meallogs' },
       { text: '게시판', path: '/board' },
-      { text: '마이페이지', path: '/mypage' },
-
+      { 
+        text: '마이페이지', 
+        path: '/mypage',
+        onClick: handleMyPageClick
+      },
     ];
 
     if (isAuthenticated) {

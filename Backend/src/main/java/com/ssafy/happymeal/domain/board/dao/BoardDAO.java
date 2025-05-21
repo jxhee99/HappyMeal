@@ -201,8 +201,12 @@ public interface BoardDAO {
     @Update("UPDATE Board SET views = views + 1 WHERE board_id = #{boardId}")
     int incrementViewCount(@Param("boardId") Long boardId);
 
+    // 게시글 수정
+    @Update("UPDATE Board SET title = #{title}, category_id = #{categoryId}, update_at = NOW() WHERE board_id = #{boardId}")
+    int updateBoard(Board board);
 
-
-
+    // 게시글 삭제
+    @Delete("DELETE FROM Board WHERE board_id = #{boardId}")
+    int deleteBoard(Long boardId);
 
 }

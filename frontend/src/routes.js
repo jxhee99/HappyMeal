@@ -15,6 +15,7 @@ import Admin from './pages/Admin';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import PrivateRoute from './components/PrivateRoute';
+import BoardEdit from './pages/BoardEdit';
 
 const AppRoutes = () => {
   return (
@@ -32,6 +33,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/meallogs" element={<MealLogs />} />
         <Route path="/board/write" element={<BoardWrite />} />
+        <Route path="/board/edit/:id" element={<BoardEdit />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/profile" element={<Profile />} />
       </Route>

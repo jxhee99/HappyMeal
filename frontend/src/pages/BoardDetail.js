@@ -28,10 +28,12 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import BoardService from '../services/BoardService';
+import { useAuth } from '../contexts/AuthContext';
 
 const BoardDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [post, setPost] = useState(null);
@@ -43,6 +45,7 @@ const BoardDetail = () => {
 
   useEffect(() => {
     console.log('BoardDetail 마운트, id:', id); // 디버깅용 로그
+    console.log('현재 로그인한 사용자:', user); // 사용자 정보 로그
     
     if (!id) {
       console.error('id가 없습니다.'); // 디버깅용 로그
@@ -63,6 +66,8 @@ const BoardDetail = () => {
         ]);
 
         console.log('게시글 상세 응답:', boardResponse.data);
+        console.log('게시글 작성자 ID:', boardResponse.data.userId); // 작성자 ID 로그
+        console.log('현재 사용자 ID:', user?.userId); // 현재 사용자 ID 로그
         console.log('게시글 블록 데이터:', boardResponse.data.blocks);
         console.log('댓글 조회 응답:', commentsResponse.data);
         
@@ -84,7 +89,7 @@ const BoardDetail = () => {
     };
 
     fetchData();
-  }, [id]); // id가 변경될 때만 실행
+  }, [id, user]); // user를 의존성 배열에 추가
 
   const handleLike = async () => {
     if (!id) return;
@@ -117,6 +122,24 @@ const BoardDetail = () => {
         console.error('게시글 삭제 실패:', error);
         setError('게시글 삭제에 실패했습니다.');
       }
+    }
+  };
+
+  const handleEdit = () => {
+    console.log('수정 버튼 클릭:', { id, user }); // 디버깅 로그 추가
+    if (!user) {
+      setError('로그인이 필요한 기능입니다.');
+      return;
+    }
+    if (!id) {
+      setError('게시글 ID가 없습니다.');
+      return;
+    }
+    try {
+      navigate(`/board/edit/${id}`, { replace: true });
+    } catch (error) {
+      console.error('페이지 이동 실패:', error);
+      setError('페이지 이동에 실패했습니다.');
     }
   };
 
@@ -234,12 +257,16 @@ const BoardDetail = () => {
             <IconButton onClick={handleLike} color={liked ? 'primary' : 'default'}>
               <ThumbUpIcon />
             </IconButton>
-            <IconButton onClick={() => navigate(`/board/edit/${id}`)}>
-              <EditIcon />
-            </IconButton>
-            <IconButton onClick={handleDelete} color="error">
-              <DeleteIcon />
-            </IconButton>
+            {user && Number(user.userId) === post.userId && (
+              <>
+                <IconButton onClick={handleEdit}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton onClick={handleDelete} color="error">
+                  <DeleteIcon />
+                </IconButton>
+              </>
+            )}
           </Box>
         </Box>
 

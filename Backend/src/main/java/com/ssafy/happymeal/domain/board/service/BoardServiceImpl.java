@@ -203,4 +203,69 @@ public class BoardServiceImpl implements BoardService{
         return topLevelCommentElements;
     }
 
+    @Override
+    @Transactional
+    public BoardDetailResponseDto updateBoard(Long userId, Long boardId, BoardUpdateRequestDto requestDto) {
+        // 1. 게시글 존재 확인 및 작성자 확인
+        Board board = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다. boardId: " + boardId));
+
+        if (!board.getUserId().equals(userId)) {
+            throw new IllegalStateException("게시글 수정 권한이 없습니다.");
+        }
+
+        // 2. 게시글 기본 정보 업데이트
+        board.setTitle(requestDto.getTitle());
+        board.setCategoryId(requestDto.getCategoryId() != null ? requestDto.getCategoryId().intValue() : 0);
+        boardDAO.updateBoard(board);
+
+        // 3. 기존 블록 삭제
+        blockDAO.deleteBlocksByBoardId(boardId);
+
+        // 4. 새로운 블록 저장
+        List<Block> savedBlockEntities = new ArrayList<>();
+        if (requestDto.getBlocks() != null && !requestDto.getBlocks().isEmpty()) {
+            for (BoardUpdateRequestDto.BlockUpdateRequestDto blockDto : requestDto.getBlocks()) {
+                Block block = Block.builder()
+                        .boardId(boardId)
+                        .orderIndex(blockDto.getOrderIndex())
+                        .blockType(blockDto.getBlockType())
+                        .contentText(blockDto.getContentText())
+                        .imageUrl(blockDto.getImageUrl())
+                        .imageCaption(blockDto.getImageCaption())
+                        .build();
+                blockDAO.saveBlock(block);
+                savedBlockEntities.add(block);
+            }
+        }
+
+        // 5. 업데이트된 게시글 정보 조회
+        Board updatedBoard = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("업데이트된 게시글을 찾을 수 없습니다."));
+
+        User author = userDao.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("작성자 정보를 찾을 수 없습니다."));
+
+        return BoardDetailResponseDto.fromEntities(updatedBoard, author, savedBlockEntities);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBoard(Long userId, Long boardId) {
+        // 1. 게시글 존재 확인 및 작성자 확인
+        Board board = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다. boardId: " + boardId));
+
+        if (!board.getUserId().equals(userId)) {
+            throw new IllegalStateException("게시글 삭제 권한이 없습니다.");
+        }
+
+        // 2. 관련 데이터 삭제 (블록, 댓글 등)
+        blockDAO.deleteBlocksByBoardId(boardId);
+        commentDAO.deleteCommentsByBoardId(boardId);
+
+        // 3. 게시글 삭제
+        boardDAO.deleteBoard(boardId);
+    }
+
 }

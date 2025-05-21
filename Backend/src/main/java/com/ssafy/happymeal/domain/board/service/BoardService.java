@@ -27,4 +27,10 @@ public interface BoardService {
 
     // 게시글의 댓글/대댓글(1개) 조회
     List<CommentResponseDto> getBoardComments(Long boardId);
+
+    // 게시글 수정
+    BoardDetailResponseDto updateBoard(Long userId, Long boardId, BoardUpdateRequestDto requestDto);
+
+    // 게시글 삭제
+    void deleteBoard(Long userId, Long boardId);
 }

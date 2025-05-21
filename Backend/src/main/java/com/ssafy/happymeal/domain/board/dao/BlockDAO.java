@@ -16,4 +16,7 @@ public interface BlockDAO {
     @Select("SELECT block_id, board_id, order_index, block_type, content_text, image_url, image_caption, create_at, update_at " +
             "FROM Block WHERE board_id = #{boardId} ORDER BY order_index ASC")
     List<Block> findBlocksByBoardId(Long boardId);
+
+    @Delete("DELETE FROM Block WHERE board_id = #{boardId}")
+    int deleteBlocksByBoardId(@Param("boardId") Long boardId);
 }

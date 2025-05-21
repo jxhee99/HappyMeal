@@ -1,10 +1,8 @@
 package com.ssafy.happymeal.domain.board.dao;
 
-import com.ssafy.happymeal.domain.board.dto.BoardAuthorSearchCriteria;
-import com.ssafy.happymeal.domain.board.dto.BoardCategoryCriteria;
-import com.ssafy.happymeal.domain.board.dto.BoardResponseDto;
-import com.ssafy.happymeal.domain.board.dto.BoardTitleSearchCriteria;
+import com.ssafy.happymeal.domain.board.dto.*;
 import com.ssafy.happymeal.domain.board.entity.Board;
+import com.ssafy.happymeal.domain.comment.entity.Comment;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -202,6 +200,9 @@ public interface BoardDAO {
 
     @Update("UPDATE Board SET views = views + 1 WHERE board_id = #{boardId}")
     int incrementViewCount(@Param("boardId") Long boardId);
+
+
+
 
 
 }

@@ -5,6 +5,8 @@ import com.ssafy.happymeal.domain.board.dao.BoardDAO;
 import com.ssafy.happymeal.domain.board.dto.*;
 import com.ssafy.happymeal.domain.board.entity.Block;
 import com.ssafy.happymeal.domain.board.entity.Board;
+import com.ssafy.happymeal.domain.comment.dao.CommentDAO;
+import com.ssafy.happymeal.domain.comment.entity.Comment;
 import com.ssafy.happymeal.domain.user.dao.UserDAO;
 import com.ssafy.happymeal.domain.user.entity.User;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,6 +32,7 @@ public class BoardServiceImpl implements BoardService{
     private final BoardDAO boardDAO;
     private final BlockDAO blockDAO;
     private final UserDAO userDao;
+    private final CommentDAO commentDAO;
 
     // 게시글 조회(필터링, 정렬, 페이징 포함)
     @Override
@@ -130,5 +135,72 @@ public class BoardServiceImpl implements BoardService{
         return BoardDetailResponseDto.fromEntities(board, author, blockEntities); // blockEntities 전달
     }
 
+    // 댓글/대댓글 생성
+    @Override
+    @Transactional
+    public Comment createComment(Long userId, Long boardId, CommentRequestDto requestDto) {
+        // 1. 게시글 존재 확인
+        Board board = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다. boardId: " + boardId));
+
+        // 2. 부모댓글(존재시) 요휴성 체크
+        if(requestDto.getParentCommentId()!=null) {
+           Comment comment =  commentDAO.findCommentById(requestDto.getParentCommentId(), boardId)
+                   .orElseThrow(() -> new EntityNotFoundException("부모 댓글을 찾을 수 없습니다. parentCommentId : " + requestDto.getParentCommentId()));
+        }
+
+        Comment comment = Comment.builder()
+                .boardId(boardId)
+                .userId(userId)
+                .content(requestDto.getContent())
+                .parentCommentId(requestDto.getParentCommentId())
+                .build();
+
+        int save = commentDAO.saveComment(comment);
+
+        // 데이터베이스  저장 완료
+        if(save==1) {
+            log.info("댓글 생성 완료 : userId={}, commentId={}", userId, comment.getCommentId());
+            if(comment.getCommentId()==null) {
+                throw new IllegalArgumentException("commentId 생성 실패");
+            }
+            return comment;
+        }
+        // 저장 실패 시 반환 로직
+        throw  new RuntimeException("댓글 저장 실패 userId : " + userId);
+    }
+
+    // 게시글의 댓글/대댓글(1개) 조회
+    @Override
+    public List<CommentResponseDto> getBoardComments(Long boardId) {
+
+        // 1. 최상위 댓글 목록 조회
+        List<CommentResponseDto> topLevelCommentElements = commentDAO.findTopLevelCommentsByBoardId(boardId);
+
+        if(topLevelCommentElements.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 2. 최상위 댓글 ID 리스트 추출
+        List<Long> topLevelCommentIds = topLevelCommentElements.stream()
+                .map(CommentResponseDto::getCommentId)
+                .collect(Collectors.toList());
+
+        // 3. 1단계 대댓글 조회
+        List<CommentResponseDto> replyElements = Collections.emptyList();
+        if(!topLevelCommentIds.isEmpty()) {
+            replyElements = commentDAO.findChildRepliesByParentId(topLevelCommentIds);
+        }
+
+        // 4. 1단계 대댓글들을 부모 ID 기준으로 그룹핑(Map<부모 ID, List<1단계대댓글>>)
+        Map<Long, List<CommentResponseDto>> repliesMap = replyElements.stream()
+                .collect(Collectors.groupingBy(CommentResponseDto::getParentCommentId));
+
+        // 5. 최상위 댓글에 1단계 대댓글 연결
+        topLevelCommentElements.forEach(element -> {
+            element.setReplies(repliesMap.getOrDefault(element.getCommentId(), Collections.emptyList()));
+        });
+        return topLevelCommentElements;
+    }
 
 }

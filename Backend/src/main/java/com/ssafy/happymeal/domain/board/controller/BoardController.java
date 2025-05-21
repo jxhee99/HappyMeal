@@ -2,6 +2,7 @@ package com.ssafy.happymeal.domain.board.controller;
 
 import com.ssafy.happymeal.domain.board.dto.*;
 import com.ssafy.happymeal.domain.board.service.BoardService;
+import com.ssafy.happymeal.domain.comment.entity.Comment;
 import com.ssafy.happymeal.domain.commonDto.PageResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -169,5 +171,35 @@ public class BoardController {
 
         return ResponseEntity.ok(boardDetailResponse);
     }
+
+    /* 댓글/대댓글 작성(Create)
+    * POST api/boards/{boardId}/comments
+    * 접근 권한 : USER */
+    @PostMapping("/{boardId}/comments")
+    public ResponseEntity<?> createComment(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long boardId,
+            @Valid @RequestBody CommentRequestDto requestDto) {
+
+        Long userId = Long.parseLong(userDetails.getUsername());
+        log.info("댓글 작성 요청 수신 - userId: {}, boardId: {}", userId, boardId);
+        Comment createComment = boardService.createComment(userId, boardId, requestDto);
+        return ResponseEntity.ok(createComment);
+
+    }
+
+    /* 게시글 내의 댓글/대댓글(1개) 조회
+     * GET api/boards/{boardId}/comments
+     * 접근 권한 : ALL */
+    @GetMapping("/{boardId}/comments")
+    public ResponseEntity<List<CommentResponseDto>> getBoardComments(@PathVariable Long boardId) {
+        log.info("댓글 조회 요청 게시글 boardId: {}", boardId);
+        List<CommentResponseDto> comments = boardService.getBoardComments(boardId);
+        if(comments == null || comments.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList()); // 비어있는 리스트 반환
+        }
+        return ResponseEntity.ok(comments);
+    }
+
 
 }

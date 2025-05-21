@@ -127,7 +127,7 @@ CREATE TABLE Comment (
                          board_id BIGINT NOT NULL COMMENT '댓글이 달린 게시글 ID (Board 테이블 PK 참조)',
                          user_id BIGINT NOT NULL COMMENT '댓글 작성자 ID (User 테이블 PK 참조)',
                          content TEXT NOT NULL COMMENT '댓글 내용',
-                         parent_comment_id BIGINT NULL COMMENT '부모 댓글 ID (대댓글인 경우)', // 대댓글 위한 컬럼 추가
+                         parent_comment_id BIGINT NULL COMMENT '부모 댓글 ID (대댓글인 경우)', -- 대댓글 위한 컬럼 추가
                          create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '댓글 생성 일시',
                          update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '댓글 수정 일시',
                          CONSTRAINT fk_comment_board FOREIGN KEY (board_id) REFERENCES Board(board_id)
@@ -136,7 +136,8 @@ CREATE TABLE Comment (
                              ON DELETE CASCADE, -- 사용자 삭제 시 해당 사용자 댓글 모두 삭제 (정책에 따라 변경 가능)
                          CONSTRAINT fk_comment_parent FOREIGN KEY (parent_comment_id) REFERENCES Comment(comment_id)
                              ON DELETE CASCADE, -- 부모 댓글 삭제 시 자식 댓글도 삭제 (정책에 따라 변경 가능)
-                         INDEX idx_comment_board (board_id) COMMENT '게시글별 댓글 조회를 위한 인덱스'
+                         INDEX idx_comment_board (board_id) COMMENT '게시글별 댓글 조회를 위한 인덱스',
+                         INDEX idx_board_user (board_id, user_id) COMMENT '게시글 ID 및 사용자 ID 복합 인덱스'
 ) ENGINE=InnoDB COMMENT '게시글 댓글 정보';
 
 select * from food;

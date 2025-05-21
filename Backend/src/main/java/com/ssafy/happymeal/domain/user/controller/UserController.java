@@ -2,15 +2,11 @@ package com.ssafy.happymeal.domain.user.controller;
 
 import com.ssafy.happymeal.domain.commonDto.PageResponse;
 import com.ssafy.happymeal.domain.user.dto.*;
-import com.ssafy.happymeal.domain.user.entity.User;
 import com.ssafy.happymeal.domain.user.service.UserService;
-import com.ssafy.happymeal.domain.user.service.UserServiceImpl;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;

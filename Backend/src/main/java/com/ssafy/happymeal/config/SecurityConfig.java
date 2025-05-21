@@ -58,8 +58,8 @@ public class SecurityConfig {
                                 "/api/auth/**", // 인증 관련 API (로그인 시작, 콜백 등)
                                 "/api/foods", // 음식 검색 (GET) - 명세상 모든 사용자 접근 가능
                                 "/api/foods/{foodId}", // 음식 상세 조회 (GET) - 명세상 모든 사용자 접근 가능
-                                "/api/board", // 게시판 목록 조회 (GET)
-                                "/api/board/{postId}" // 게시판 상세 조회 (GET)
+                                "/api/boards", // 게시판 목록 조회 (GET)
+                                "/api/boards/{boardId}" // 게시판 상세 조회 (GET)
                                 // 필요시 h2-console 접근 허용 (개발용)
                                 // , "/h2-console/**"
                         ).permitAll() // 위 경로는 인증 없이 접근 허용

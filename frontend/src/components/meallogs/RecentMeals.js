@@ -165,6 +165,8 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
 
   const handleEdit = () => {
     if (selectedMealLog) {
+      console.log('선택된 식단:', selectedMealLog);
+      
       setSelectedFood({
         foodId: selectedMealLog.foodId,
         name: selectedMealLog.foodName,
@@ -175,13 +177,19 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
         protein: selectedMealLog.protein,
         fat: selectedMealLog.fat
       });
+
+      // 날짜가 없는 경우 현재 날짜 사용
+      const mealDate = selectedMealLog.mealDate || selectedDate;
+      console.log('설정할 날짜:', mealDate);
+
       setNewMealLog({
         foodId: selectedMealLog.foodId,
         foodName: selectedMealLog.foodName,
         quantity: selectedMealLog.quantity,
         mealType: selectedMealLog.mealType,
-        mealDate: selectedMealLog.mealDate,
-        imgUrl: selectedMealLog.imgUrl
+        mealDate: mealDate,
+        imgUrl: selectedMealLog.imgUrl || '',
+        logId: selectedMealLog.logId
       });
       setIsEditMode(true);
       setOpen(true);
@@ -192,7 +200,7 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
   const handleDelete = async () => {
     if (selectedMealLog) {
       try {
-        await mealLogService.deleteMealLog(selectedMealLog.id);
+        await mealLogService.deleteMealLog(selectedMealLog.logId);
         if (onMealLogAdded) {
           onMealLogAdded();
         }
@@ -229,16 +237,24 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
 
   const handleSubmit = async () => {
     try {
+      console.log('현재 newMealLog:', newMealLog);
+      
+      // 날짜가 없는 경우 현재 날짜 사용
+      const mealDate = newMealLog.mealDate || selectedDate;
+      console.log('사용할 날짜:', mealDate);
+
       const mealLogData = {
         foodId: newMealLog.foodId,
-        mealDate: newMealLog.mealDate,
+        mealDate: mealDate,
         mealType: newMealLog.mealType,
-        quantity: newMealLog.quantity,
-        imgUrl: newMealLog.imgUrl
+        quantity: Number(newMealLog.quantity),
+        imgUrl: newMealLog.imgUrl || ''
       };
       
-      if (isEditMode && selectedMealLog) {
-        await mealLogService.updateMealLog(selectedMealLog.id, mealLogData);
+      console.log('전송할 데이터:', mealLogData);
+      
+      if (isEditMode && newMealLog.logId) {
+        await mealLogService.updateMealLog(newMealLog.logId, mealLogData);
       } else {
         await mealLogService.addMealLog(mealLogData);
       }
@@ -249,6 +265,9 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
       }
     } catch (error) {
       console.error('식단 저장 실패:', error);
+      if (error.response) {
+        console.error('서버 응답:', error.response.data);
+      }
       alert('식단 저장에 실패했습니다.');
     }
   };

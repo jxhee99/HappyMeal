@@ -473,8 +473,15 @@ const MyPage = () => {
                             }
                           />
                           <ListItemSecondaryAction>
-                            <IconButton edge="end" aria-label="unlike">
-                              <FavoriteIcon color="error" />
+                            <IconButton 
+                              edge="end" 
+                              aria-label="unlike"
+                              sx={{ 
+                                color: '#fb3d62',
+                                '&:hover': { color: '#fb3d62' }
+                              }}
+                            >
+                              <FavoriteIcon />
                             </IconButton>
                           </ListItemSecondaryAction>
                         </ListItem>

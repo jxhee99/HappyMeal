@@ -28,7 +28,11 @@ public class CommentServiceImpl implements CommentService {
         }
 
         // 댓글 삭제 (CASCADE 설정으로 인해 자식 댓글도 자동 삭제됨)
+        int childCommentCount = commentDAO.countChildComments(commentId);
         commentDAO.deleteComment(commentId);
+        commentDAO.deleteCommentCount(boardId, childCommentCount);
         log.info("댓글 삭제 완료 - commentId: {}", commentId);
+
+
     }
 }

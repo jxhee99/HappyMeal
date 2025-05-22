@@ -167,6 +167,7 @@ public class BoardServiceImpl implements BoardService{
             if(comment.getCommentId()==null) {
                 throw new IllegalArgumentException("commentId 생성 실패");
             }
+            commentDAO.updateCommentCount(comment);
             return comment;
         }
         // 저장 실패 시 반환 로직
@@ -269,6 +270,8 @@ public class BoardServiceImpl implements BoardService{
 
         // 3. 게시글 삭제
         boardDAO.deleteBoard(boardId);
+
+
     }
 
     @Override
@@ -284,6 +287,7 @@ public class BoardServiceImpl implements BoardService{
         if (existingLike != null) {
             // 이미 좋아요가 있는 경우 -> 좋아요 취소
             boardLikeDAO.deleteLike(userId, boardId);
+            boardLikeDAO.updateLikeCount2(boardId);
             board.setLikesCount(board.getLikesCount() - 1);
         } else {
             // 좋아요가 없는 경우 -> 좋아요 추가
@@ -292,6 +296,7 @@ public class BoardServiceImpl implements BoardService{
                     .boardId(boardId)
                     .build();
             boardLikeDAO.saveLike(newLike);
+            boardLikeDAO.updateLikeCount(newLike);
             board.setLikesCount(board.getLikesCount() + 1);
         }
         

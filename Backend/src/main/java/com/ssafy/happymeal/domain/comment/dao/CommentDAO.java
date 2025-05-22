@@ -16,6 +16,9 @@ public interface CommentDAO {
     @Options(useGeneratedKeys = true, keyProperty = "commentId", keyColumn = "comment_id")
     int saveComment(Comment comment);
 
+    @Update("update Board set comments_count=comments_count+1 where board_id=#{boardId}")
+    void updateCommentCount(Comment comment);
+
     // 댓글 ID와 부모 댓글 ID 일치 확인
     @Select("select * " +
             "from Comment " +
@@ -53,7 +56,14 @@ public interface CommentDAO {
     @Delete("DELETE FROM Comment WHERE board_id = #{boardId}")
     int deleteCommentsByBoardId(@Param("boardId") Long boardId);
 
+    @Select("select count(*) from Comment where parent_comment_id=#{parentCommentId}")
+    int countChildComments(Long parentCommentId);
+
     // 댓글 삭제 (CASCADE 설정으로 인해 자식 댓글도 자동 삭제됨)
     @Delete("DELETE FROM Comment WHERE comment_id = #{commentId}")
     int deleteComment(@Param("commentId") Long commentId);
+
+    @Update("update Board set comments_count=comments_count-#{commentCount}-1 where board_id=#{boardId}")
+    void deleteCommentCount(@Param("boardId") Long boardId, @Param("commentCount") int commentCount);
+
 }

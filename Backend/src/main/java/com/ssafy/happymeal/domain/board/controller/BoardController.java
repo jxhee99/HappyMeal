@@ -350,4 +350,11 @@ public class BoardController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{boardId}/likes/count")
+    public ResponseEntity<Integer> getLikesCount(@PathVariable Long boardId) {
+        log.info("좋아요 수 조회 요청 - boardId: {}", boardId);
+        int likesCount = boardService.getLikesCount(boardId);
+        return ResponseEntity.ok(likesCount);
+    }
+
 }

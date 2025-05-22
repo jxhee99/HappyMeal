@@ -335,4 +335,10 @@ public class BoardServiceImpl implements BoardService{
         return new PageImpl<>(likedBoards, PageRequest.of(page, size), totalElements);
     }
 
+    @Override
+    public int getLikesCount(Long boardId) {
+        log.info("게시글 좋아요 수 조회 - boardId: {}", boardId);
+        return boardLikeDAO.countByBoardId(boardId);
+    }
+
 }

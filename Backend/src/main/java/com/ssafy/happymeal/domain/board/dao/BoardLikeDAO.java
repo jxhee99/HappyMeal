@@ -31,4 +31,13 @@ public interface BoardLikeDAO {
     
     @Select("SELECT COUNT(*) FROM BoardLike WHERE user_id = #{userId}")
     long countLikedBoardsByUserId(Long userId);
+
+    /**
+     * 특정 게시글의 좋아요 수를 조회합니다.
+     *
+     * @param boardId 게시글 ID
+     * @return 좋아요 수
+     */
+    @Select("SELECT COUNT(*) FROM BoardLike WHERE board_id = #{boardId}")
+    int countByBoardId(Long boardId);
 } 

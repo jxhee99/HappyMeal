@@ -65,4 +65,5 @@ public interface CommentDAO {
 
     @Update("update Board set comments_count=comments_count-#{commentCount}-1 where board_id=#{boardId}")
     void deleteCommentCount(@Param("boardId") Long boardId, @Param("commentCount") int commentCount);
+
 }

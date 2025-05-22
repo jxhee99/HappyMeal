@@ -32,5 +32,7 @@ public class CommentServiceImpl implements CommentService {
         commentDAO.deleteComment(commentId);
         commentDAO.deleteCommentCount(boardId, childCommentCount);
         log.info("댓글 삭제 완료 - commentId: {}", commentId);
+
+
     }
 }

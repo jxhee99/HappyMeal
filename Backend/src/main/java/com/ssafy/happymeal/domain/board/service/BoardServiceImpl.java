@@ -270,6 +270,8 @@ public class BoardServiceImpl implements BoardService{
 
         // 3. 게시글 삭제
         boardDAO.deleteBoard(boardId);
+
+
     }
 
     @Override

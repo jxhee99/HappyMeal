@@ -52,4 +52,8 @@ public interface CommentDAO {
 
     @Delete("DELETE FROM Comment WHERE board_id = #{boardId}")
     int deleteCommentsByBoardId(@Param("boardId") Long boardId);
+
+    // 댓글 삭제 (CASCADE 설정으로 인해 자식 댓글도 자동 삭제됨)
+    @Delete("DELETE FROM Comment WHERE comment_id = #{commentId}")
+    int deleteComment(@Param("commentId") Long commentId);
 }

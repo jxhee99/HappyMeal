@@ -198,6 +198,21 @@ const BoardDetail = () => {
     }
   };
 
+  // 댓글 삭제 핸들러 추가
+  const handleDeleteComment = async (commentId) => {
+    if (!id || !commentId) return;
+    
+    if (window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+      try {
+        await BoardService.deleteComment(id, commentId);
+        await refreshComments(); // 댓글 목록 새로고침
+      } catch (error) {
+        console.error('댓글 삭제 실패:', error);
+        setError('댓글 삭제에 실패했습니다.');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -394,13 +409,23 @@ const BoardDetail = () => {
                             </Typography>
                           }
                         />
-                        <Button
-                          size="small"
-                          onClick={() => setReplyTo(comment.commentId)}
-                          sx={{ ml: 1 }}
-                        >
-                          답글
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            size="small"
+                            onClick={() => setReplyTo(comment.commentId)}
+                          >
+                            답글
+                          </Button>
+                          {user && Number(user.userId) === comment.userId && (
+                            <Button
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteComment(comment.commentId)}
+                            >
+                              삭제
+                            </Button>
+                          )}
+                        </Box>
                       </Box>
                       
                       {/* 대댓글 작성 폼 */}
@@ -462,6 +487,15 @@ const BoardDetail = () => {
                                   </Typography>
                                 }
                               />
+                              {user && Number(user.userId) === reply.userId && (
+                                <Button
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleDeleteComment(reply.commentId)}
+                                >
+                                  삭제
+                                </Button>
+                              )}
                             </ListItem>
                           ))}
                         </List>

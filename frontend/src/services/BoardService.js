@@ -153,6 +153,17 @@ const BoardService = {
       console.error('댓글 목록 조회 API 호출 실패:', error);
       throw error;
     }
+  },
+
+  // 댓글 삭제
+  deleteComment: async (boardId, commentId) => {
+    try {
+      const response = await axiosInstance.delete(`/comments/${boardId}/${commentId}`);
+      return response;
+    } catch (error) {
+      console.error('댓글 삭제 API 호출 실패:', error);
+      throw error;
+    }
   }
 };
 

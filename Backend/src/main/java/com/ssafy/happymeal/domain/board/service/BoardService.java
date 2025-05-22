@@ -42,4 +42,12 @@ public interface BoardService {
 
     // 사용자가 좋아요한 게시글 목록 조회
     Page<BoardResponseDto> getLikedBoardsByUser(Long userId, int page, int size);
+
+    /**
+     * 게시글의 좋아요 수를 조회합니다.
+     *
+     * @param boardId 게시글 ID
+     * @return 좋아요 수
+     */
+    int getLikesCount(Long boardId);
 }

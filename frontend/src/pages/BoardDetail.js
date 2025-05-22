@@ -59,18 +59,23 @@ const BoardDetail = () => {
         setLoading(true);
         setError('');
         
-        // 게시글 상세 정보, 댓글, 좋아요 상태를 병렬로 가져옵니다
-        const [boardResponse, commentsResponse, likeResponse] = await Promise.all([
+        // 게시글 상세 정보, 댓글, 좋아요 상태, 좋아요 수를 병렬로 가져옵니다
+        const [boardResponse, commentsResponse, likeResponse, likesCountResponse] = await Promise.all([
           BoardService.getBoardDetail(id),
           BoardService.getBoardComments(id),
-          user ? BoardService.getLikeStatus(id) : Promise.resolve({ data: { isLiked: false } })
+          user ? BoardService.getLikeStatus(id) : Promise.resolve({ data: { isLiked: false } }),
+          BoardService.getLikesCount(id)
         ]);
 
         console.log('게시글 상세 응답:', boardResponse.data);
         console.log('좋아요 상태 응답:', likeResponse.data);
+        console.log('좋아요 수 응답:', likesCountResponse.data);
         console.log('댓글 조회 응답:', commentsResponse.data);
         
-        setPost(boardResponse.data);
+        setPost({
+          ...boardResponse.data,
+          likesCount: likesCountResponse.data
+        });
         setComments(commentsResponse.data);
         setLiked(likeResponse.data.isLiked);
       } catch (error) {
@@ -97,24 +102,20 @@ const BoardDetail = () => {
     }
     
     try {
-      console.log('좋아요 토글 전 상태:', { liked, likesCount: post.likesCount }); // 디버깅용 로그
+      console.log('좋아요 토글 전 상태:', { liked }); // 디버깅용 로그
       
       const response = await BoardService.toggleLike(id);
       console.log('좋아요 토글 응답:', response.data); // 디버깅용 로그
       
       // 서버 응답에 따라 상태 업데이트
-      const newLikedState = response.data.likesCount > 0; // likesCount가 0보다 크면 좋아요 상태
-      console.log('새로운 좋아요 상태:', newLikedState); // 디버깅용 로그
+      setLiked(response.data.isLiked);
       
-      setLiked(newLikedState);
-      setPost(prev => {
-        const updatedPost = {
-          ...prev,
-          likesCount: Math.max(0, response.data.likesCount) // 음수가 되지 않도록 처리
-        };
-        console.log('업데이트된 게시글 상태:', updatedPost); // 디버깅용 로그
-        return updatedPost;
-      });
+      // 좋아요 수 업데이트
+      const likesCountResponse = await BoardService.getLikesCount(id);
+      setPost(prev => ({
+        ...prev,
+        likesCount: likesCountResponse.data
+      }));
     } catch (error) {
       console.error('좋아요 처리 실패:', error);
       if (error.response?.status === 401) {

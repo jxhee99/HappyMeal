@@ -14,7 +14,7 @@ public class MyCommentResponseDto {
     private Long commentId;
     private Long boardId;
     private String content;
-    private Timestamp creatAt;
+    private Timestamp createAt;
     private Timestamp updateAt;
 
 }

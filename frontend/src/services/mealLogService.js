@@ -112,10 +112,14 @@ export const mealLogService = {
   // 식단 기록 수정
   updateMealLog: async (mealLogId, mealLogData) => {
     try {
+      console.log('수정 요청 데이터:', { mealLogId, mealLogData });
       const response = await axiosInstance.put(`/meallogs/${mealLogId}`, mealLogData);
       return response.data;
     } catch (error) {
       console.error('식단 수정 실패:', error);
+      if (error.response) {
+        console.error('서버 응답:', error.response.data);
+      }
       throw error;
     }
   }

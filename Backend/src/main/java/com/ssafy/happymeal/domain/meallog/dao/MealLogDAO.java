@@ -88,6 +88,6 @@ public interface MealLogDAO {
 
     @Update("update MealLog " +
             "set food_id=#{foodId}, meal_date=#{mealDate}, meal_type=#{mealType}, quantity=#{quantity}, img_url=#{imgUrl} " +
-            "where user_id=#{userId}")
+            "where user_id=#{userId} AND log_id=#{logId}")
     int updateMealLog(MealLog mealLog);
 }

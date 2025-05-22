@@ -10,9 +10,16 @@ public interface BoardLikeDAO {
     
     @Insert("INSERT INTO BoardLike (user_id, board_id, create_at) VALUES (#{userId}, #{boardId}, NOW())")
     int saveLike(BoardLike boardLike);
-    
+
+    @Update("update Board set likes_count=likes_count+1 where board_id = #{boardId}")
+    void updateLikeCount(BoardLike boardLike);
+
     @Delete("DELETE FROM BoardLike WHERE user_id = #{userId} AND board_id = #{boardId}")
     int deleteLike(@Param("userId") Long userId, @Param("boardId") Long boardId);
+
+    @Update("update Board set likes_count=likes_count-1 where board_id = #{boardId}")
+    void updateLikeCount2(@Param("boardId") Long boardId);
+
     
     @Select("SELECT * FROM BoardLike WHERE user_id = #{userId} AND board_id = #{boardId}")
     BoardLike findByUserIdAndBoardId(@Param("userId") Long userId, @Param("boardId") Long boardId);

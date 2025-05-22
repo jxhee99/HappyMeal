@@ -19,5 +19,4 @@ public class Board {
     private int views; // 조회수
     private int likesCount; // 좋아요 수
     private int commentsCount; // 댓글 수
-
 }

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { styled } from '@mui/material/styles';
 import { foodService } from '../services/foodService';
 import FoodCard from '../components/FoodCard';
+import { useNavigate } from 'react-router-dom';
 
 const MotionBox = motion(Box);
 
@@ -86,6 +87,7 @@ const Home = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const categoryInfo = {
     diet: {
@@ -206,6 +208,7 @@ const Home = () => {
                 background: 'linear-gradient(135deg, #FF8E53, #FF6B6B)',
               },
             }}
+            onClick={() => navigate('/meallogs')}
           >
             식단 기록하기
           </Button>

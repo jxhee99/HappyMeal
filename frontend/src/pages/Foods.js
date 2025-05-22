@@ -191,20 +191,34 @@ function Foods() {
   }
 
   return (
-    <Box sx={{ background: "#eaf6ff", minHeight: "100vh", py: 6 }}>
+    <Box sx={{ background: "#ffffff", minHeight: "100vh", py: 6 }}>
       <Container maxWidth="lg">
-        <Typography 
-          variant="h4" 
-          sx={{ 
-            color: "#ff4d29", 
-            fontWeight: 700, 
-            textAlign: "center", 
-            mb: 5,
-            textShadow: "2px 2px 4px rgba(0,0,0,0.1)"
-          }}
-        >
-          음식 목록
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              color: "#ff4d29", 
+              fontWeight: 700,
+              textShadow: "2px 2px 4px rgba(0,0,0,0.1)"
+            }}
+          >
+            음식 목록
+          </Typography>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleOpenRequestModal}
+            sx={{
+              background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #FF8E53, #FF6B6B)',
+              },
+            }}
+          >
+            음식 추가 요청
+          </Button>
+        </Box>
 
         <Box sx={{ mb: 4, display: "flex", gap: 2, flexWrap: "wrap" }}>
           <TextField
@@ -292,15 +306,6 @@ function Foods() {
             </Typography>
           </Box>
         )}
-
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handleOpenRequestModal}
-          sx={{ mb: 2 }}
-        >
-          음식 추가 요청
-        </Button>
 
         <Dialog open={openRequestModal} onClose={handleCloseRequestModal} maxWidth="md" fullWidth>
           <DialogTitle>음식 추가 요청</DialogTitle>

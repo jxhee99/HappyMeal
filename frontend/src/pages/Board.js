@@ -8,12 +8,6 @@ import {
   Button,
   TextField,
   MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TablePagination,
   Chip,
   IconButton,
@@ -23,16 +17,15 @@ import {
   Tab,
   Alert,
   CircularProgress,
+  Pagination,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Add as AddIcon,
-  ThumbUp as ThumbUpIcon,
-  Visibility as VisibilityIcon,
-  Person as PersonIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import BoardService from '../services/BoardService';
+import BoardCard from '../components/BoardCard';
 
 const categories = [
   { id: 1, name: '맛집 추천 및 리뷰' },
@@ -52,6 +45,7 @@ const Board = () => {
   const [loading, setLoading] = useState(false);
   const [searchType, setSearchType] = useState('title'); // 'title' 또는 'author'
   const [error, setError] = useState('');
+  const [totalPages, setTotalPages] = useState(0);
 
   const fetchPosts = async () => {
     try {
@@ -67,10 +61,12 @@ const Board = () => {
       if (response.data && Array.isArray(response.data.content)) {
         setPosts(response.data.content || []);
         setTotalElements(response.data.totalElements || 0);
+        setTotalPages(response.data.totalPages || 0);
       } else {
         setError('서버에서 잘못된 응답을 받았습니다.');
         setPosts([]);
         setTotalElements(0);
+        setTotalPages(0);
       }
     } catch (error) {
       if (error.response) {
@@ -83,6 +79,7 @@ const Board = () => {
       }
       setPosts([]);
       setTotalElements(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -107,10 +104,12 @@ const Board = () => {
       if (response.data && Array.isArray(response.data.content)) {
         setPosts(response.data.content || []);
         setTotalElements(response.data.totalElements || 0);
+        setTotalPages(response.data.totalPages || 0);
       } else {
         setError(`'${searchTerm}'에 대한 검색 결과가 없습니다.`);
         setPosts([]);
         setTotalElements(0);
+        setTotalPages(0);
       }
     } catch (error) {
       if (error.response) {
@@ -123,6 +122,7 @@ const Board = () => {
       }
       setPosts([]);
       setTotalElements(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -224,86 +224,49 @@ const Board = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell width="10%">번호</TableCell>
-                      <TableCell width="40%">제목</TableCell>
-                      <TableCell width="15%">카테고리</TableCell>
-                      <TableCell width="15%">작성자</TableCell>
-                      <TableCell width="10%">조회수</TableCell>
-                      <TableCell width="10%">좋아요</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {posts?.length > 0 ? (
-                      posts.map((post) => (
-                        <TableRow
-                          key={post.boardId}
-                          hover
-                          onClick={() => navigate(`/board/${post.boardId}`)}
-                          sx={{ cursor: 'pointer' }}
-                        >
-                          <TableCell>{post.boardId}</TableCell>
-                          <TableCell>
-                            <Typography variant="body1" noWrap>
-                              {post.title || '제목 없음'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={categories.find(c => c.id === Number(post.categoryId))?.name || '기타'}
-                              size="small"
-                              color="primary"
-                              variant="outlined"
-                            />
-                          </TableCell>
-                          <TableCell>{post.nickName || '알 수 없음'}</TableCell>
-                          <TableCell>
-                            <Tooltip title="조회수">
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <VisibilityIcon fontSize="small" />
-                                {post.views || 0}
-                              </Box>
-                            </Tooltip>
-                          </TableCell>
-                          <TableCell>
-                            <Tooltip title="좋아요">
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <ThumbUpIcon fontSize="small" />
-                                {post.likesCount || 0}
-                              </Box>
-                            </Tooltip>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">
-                          <Typography variant="body1" color="text.secondary">
-                            {searchTerm ? `'${searchTerm}'에 대한 검색 결과가 없습니다.` : '게시글이 없습니다.'}
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <Grid container spacing={2}>
+                {posts?.length > 0 ? (
+                  posts.map((post) => (
+                    <Grid item xs={12} key={post.boardId}>
+                      <BoardCard
+                        post={post}
+                        categories={categories}
+                        onClick={() => navigate(`/board/${post.boardId}`)}
+                      />
+                    </Grid>
+                  ))
+                ) : (
+                  <Grid item xs={12}>
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <Typography variant="body1" color="text.secondary">
+                        {searchTerm ? `'${searchTerm}'에 대한 검색 결과가 없습니다.` : '게시글이 없습니다.'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
             )}
 
             {/* 페이지네이션 */}
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={totalElements}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-              labelRowsPerPage="페이지당 행 수"
-              labelDisplayedRows={({ from, to, count }) => `${from}-${to} / ${count}`}
-            />
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+              <Pagination
+                count={totalPages}
+                page={page + 1}
+                onChange={(event, value) => handleChangePage(event, value - 1)}
+                color="primary"
+                size="large"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                  },
+                  '& .Mui-selected': {
+                    backgroundColor: '#ff4d29 !important',
+                    color: 'white !important',
+                  },
+                }}
+              />
+            </Box>
           </Paper>
         </Grid>
       </Grid>

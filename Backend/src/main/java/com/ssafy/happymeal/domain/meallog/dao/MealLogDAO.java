@@ -85,9 +85,13 @@ public interface MealLogDAO {
             "Where user_id = #{userId} AND log_id = #{logId}")
     void deleteMealLog(Long userId, Long logId);
 
-
+    /* 식단 기록 수정(meal_date 제외) */
     @Update("update MealLog " +
-            "set food_id=#{foodId}, meal_date=#{mealDate}, meal_type=#{mealType}, quantity=#{quantity}, img_url=#{imgUrl} " +
+            "set " +
+            "food_id=#{foodId}, " +
+            "meal_date=#{mealDate}, " +
+            "meal_type=#{mealType}, quantity=#{quantity}, " +
+            "img_url=#{imgUrl} " +
             "where user_id=#{userId} AND log_id=#{logId}")
     int updateMealLog(MealLog mealLog);
 }

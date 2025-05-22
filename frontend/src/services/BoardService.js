@@ -111,24 +111,35 @@ const BoardService = {
     }
   },
 
-  // 게시글 좋아요
-  likeBoard: async (boardId) => {
+  // 좋아요 토글
+  toggleLike: async (boardId) => {
     try {
       const response = await axiosInstance.post(`/boards/${boardId}/like`);
       return response;
     } catch (error) {
-      console.error('게시글 좋아요 API 호출 실패:', error);
+      console.error('좋아요 토글 API 호출 실패:', error);
       throw error;
     }
   },
 
-  // 게시글 좋아요 취소
-  unlikeBoard: async (boardId) => {
+  // 좋아요 상태 조회
+  getLikeStatus: async (boardId) => {
     try {
-      const response = await axiosInstance.delete(`/boards/${boardId}/like`);
+      const response = await axiosInstance.get(`/boards/${boardId}/like`);
       return response;
     } catch (error) {
-      console.error('게시글 좋아요 취소 API 호출 실패:', error);
+      console.error('좋아요 상태 조회 API 호출 실패:', error);
+      throw error;
+    }
+  },
+
+  // 사용자가 좋아요한 게시글 목록 조회
+  getLikedBoards: async (page = 0, size = 10) => {
+    try {
+      const response = await axiosInstance.get(`/boards/liked?page=${page}&size=${size}`);
+      return response;
+    } catch (error) {
+      console.error('사용자가 좋아요한 게시글 목록 조회 API 호출 실패:', error);
       throw error;
     }
   },

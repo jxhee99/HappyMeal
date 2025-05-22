@@ -283,4 +283,71 @@ public class BoardController {
         }
     }
 
+    /* 좋아요 토글
+     * POST api/boards/{boardId}/like
+     * 접근 권한: USER */
+    @PostMapping("/{boardId}/like")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<BoardLikeResponseDto> toggleLike(
+            @PathVariable Long boardId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        Long userId = Long.parseLong(userDetails.getUsername());
+        log.info("좋아요 토글 요청 수신 - boardId: {}, userId: {}", boardId, userId);
+        
+        BoardLikeResponseDto response = boardService.toggleLike(userId, boardId);
+        return ResponseEntity.ok(response);
+    }
+
+    /* 좋아요 상태 조회
+     * GET api/boards/{boardId}/like
+     * 접근 권한: ALL */
+    @GetMapping("/{boardId}/like")
+    public ResponseEntity<BoardLikeResponseDto> getLikeStatus(
+            @PathVariable Long boardId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        Long userId = null;
+        if (userDetails != null) {
+            try {
+                userId = Long.parseLong(userDetails.getUsername());
+            } catch (NumberFormatException e) {
+                log.warn("좋아요 상태 조회 시 사용자 ID 파싱 오류 (무시하고 진행): username='{}'", userDetails.getUsername(), e);
+            }
+        }
+
+        log.info("좋아요 상태 조회 요청 수신 - boardId: {}, userId: {}", boardId, userId);
+        
+        BoardLikeResponseDto response = boardService.getLikeStatus(userId, boardId);
+        return ResponseEntity.ok(response);
+    }
+
+    /* 사용자가 좋아요한 게시글 목록 조회
+     * GET api/boards/liked
+     * 접근 권한: USER */
+    @GetMapping("/liked")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<PageResponse<BoardResponseDto>> getLikedBoards(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Long userId = Long.parseLong(userDetails.getUsername());
+        log.info("좋아요한 게시글 목록 조회 요청 수신 - userId: {}", userId);
+
+        Page<BoardResponseDto> likedBoardsPage = boardService.getLikedBoardsByUser(userId, page, size);
+        
+        PageResponse<BoardResponseDto> response = new PageResponse<>(
+                likedBoardsPage.getContent(),
+                likedBoardsPage.getNumber(),
+                likedBoardsPage.getSize(),
+                likedBoardsPage.getTotalElements()
+        );
+        
+        return ResponseEntity.ok(response);
+    }
+
 }

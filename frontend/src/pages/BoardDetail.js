@@ -44,11 +44,11 @@ const BoardDetail = () => {
   const [replyContent, setReplyContent] = useState('');
 
   useEffect(() => {
-    console.log('BoardDetail 마운트, id:', id); // 디버깅용 로그
-    console.log('현재 로그인한 사용자:', user); // 사용자 정보 로그
+    console.log('BoardDetail 마운트, id:', id);
+    console.log('현재 로그인한 사용자:', user);
     
     if (!id) {
-      console.error('id가 없습니다.'); // 디버깅용 로그
+      console.error('id가 없습니다.');
       setError('게시글 ID가 없습니다.');
       setLoading(false);
       return;
@@ -59,21 +59,20 @@ const BoardDetail = () => {
         setLoading(true);
         setError('');
         
-        // 게시글 상세 정보와 댓글을 병렬로 가져옵니다
-        const [boardResponse, commentsResponse] = await Promise.all([
+        // 게시글 상세 정보, 댓글, 좋아요 상태를 병렬로 가져옵니다
+        const [boardResponse, commentsResponse, likeResponse] = await Promise.all([
           BoardService.getBoardDetail(id),
-          BoardService.getBoardComments(id)
+          BoardService.getBoardComments(id),
+          user ? BoardService.getLikeStatus(id) : Promise.resolve({ data: { isLiked: false } })
         ]);
 
         console.log('게시글 상세 응답:', boardResponse.data);
-        console.log('게시글 작성자 ID:', boardResponse.data.userId); // 작성자 ID 로그
-        console.log('현재 사용자 ID:', user?.userId); // 현재 사용자 ID 로그
-        console.log('게시글 블록 데이터:', boardResponse.data.blocks);
+        console.log('좋아요 상태 응답:', likeResponse.data);
         console.log('댓글 조회 응답:', commentsResponse.data);
         
         setPost(boardResponse.data);
         setComments(commentsResponse.data);
-        setLiked(boardResponse.data.liked || false);
+        setLiked(likeResponse.data.isLiked);
       } catch (error) {
         console.error('데이터 로딩 실패:', error);
         if (error.response) {
@@ -89,25 +88,40 @@ const BoardDetail = () => {
     };
 
     fetchData();
-  }, [id, user]); // user를 의존성 배열에 추가
+  }, [id, user]);
 
   const handleLike = async () => {
-    if (!id) return;
+    if (!id || !user) {
+      setError('로그인이 필요한 기능입니다.');
+      return;
+    }
     
     try {
-      if (liked) {
-        await BoardService.unlikeBoard(id);
-      } else {
-        await BoardService.likeBoard(id);
-      }
-      setLiked(!liked);
-      setPost(prev => ({
-        ...prev,
-        likesCount: liked ? prev.likesCount - 1 : prev.likesCount + 1
-      }));
+      console.log('좋아요 토글 전 상태:', { liked, likesCount: post.likesCount }); // 디버깅용 로그
+      
+      const response = await BoardService.toggleLike(id);
+      console.log('좋아요 토글 응답:', response.data); // 디버깅용 로그
+      
+      // 서버 응답에 따라 상태 업데이트
+      const newLikedState = response.data.likesCount > 0; // likesCount가 0보다 크면 좋아요 상태
+      console.log('새로운 좋아요 상태:', newLikedState); // 디버깅용 로그
+      
+      setLiked(newLikedState);
+      setPost(prev => {
+        const updatedPost = {
+          ...prev,
+          likesCount: Math.max(0, response.data.likesCount) // 음수가 되지 않도록 처리
+        };
+        console.log('업데이트된 게시글 상태:', updatedPost); // 디버깅용 로그
+        return updatedPost;
+      });
     } catch (error) {
       console.error('좋아요 처리 실패:', error);
-      setError('좋아요 처리에 실패했습니다.');
+      if (error.response?.status === 401) {
+        setError('로그인이 필요한 기능입니다.');
+      } else {
+        setError('좋아요 처리에 실패했습니다.');
+      }
     }
   };
 
@@ -269,8 +283,14 @@ const BoardDetail = () => {
             {post.title}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <IconButton onClick={handleLike} color={liked ? 'primary' : 'default'}>
-              <ThumbUpIcon />
+            <IconButton 
+              onClick={handleLike} 
+              sx={{ 
+                color: liked ? '#fb3d62' : 'default',
+                '&:hover': { color: '#fb3d62' } 
+              }}
+            >
+              {liked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
             </IconButton>
             {user && Number(user.userId) === post.userId && (
               <>

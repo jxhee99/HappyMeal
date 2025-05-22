@@ -33,4 +33,13 @@ public interface BoardService {
 
     // 게시글 삭제
     void deleteBoard(Long userId, Long boardId);
+
+    // 좋아요 토글
+    BoardLikeResponseDto toggleLike(Long userId, Long boardId);
+
+    // 좋아요 상태 조회
+    BoardLikeResponseDto getLikeStatus(Long userId, Long boardId);
+
+    // 사용자가 좋아요한 게시글 목록 조회
+    Page<BoardResponseDto> getLikedBoardsByUser(Long userId, int page, int size);
 }

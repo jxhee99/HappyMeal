@@ -2,9 +2,11 @@ package com.ssafy.happymeal.domain.board.service;
 
 import com.ssafy.happymeal.domain.board.dao.BlockDAO;
 import com.ssafy.happymeal.domain.board.dao.BoardDAO;
+import com.ssafy.happymeal.domain.board.dao.BoardLikeDAO;
 import com.ssafy.happymeal.domain.board.dto.*;
 import com.ssafy.happymeal.domain.board.entity.Block;
 import com.ssafy.happymeal.domain.board.entity.Board;
+import com.ssafy.happymeal.domain.board.entity.BoardLike;
 import com.ssafy.happymeal.domain.comment.dao.CommentDAO;
 import com.ssafy.happymeal.domain.comment.entity.Comment;
 import com.ssafy.happymeal.domain.user.dao.UserDAO;
@@ -33,6 +35,7 @@ public class BoardServiceImpl implements BoardService{
     private final BlockDAO blockDAO;
     private final UserDAO userDao;
     private final CommentDAO commentDAO;
+    private final BoardLikeDAO boardLikeDAO;
 
     // 게시글 조회(필터링, 정렬, 페이징 포함)
     @Override
@@ -266,6 +269,70 @@ public class BoardServiceImpl implements BoardService{
 
         // 3. 게시글 삭제
         boardDAO.deleteBoard(boardId);
+    }
+
+    @Override
+    @Transactional
+    public BoardLikeResponseDto toggleLike(Long userId, Long boardId) {
+        // 1. 게시글 존재 확인
+        Board board = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+
+        // 2. 좋아요 상태 확인
+        BoardLike existingLike = boardLikeDAO.findByUserIdAndBoardId(userId, boardId);
+        
+        if (existingLike != null) {
+            // 이미 좋아요가 있는 경우 -> 좋아요 취소
+            boardLikeDAO.deleteLike(userId, boardId);
+            board.setLikesCount(board.getLikesCount() - 1);
+        } else {
+            // 좋아요가 없는 경우 -> 좋아요 추가
+            BoardLike newLike = BoardLike.builder()
+                    .userId(userId)
+                    .boardId(boardId)
+                    .build();
+            boardLikeDAO.saveLike(newLike);
+            board.setLikesCount(board.getLikesCount() + 1);
+        }
+        
+        boardDAO.updateBoard(board);
+        
+        return BoardLikeResponseDto.builder()
+                .boardId(boardId)
+                .userId(userId)
+                .isLiked(existingLike == null)
+                .likesCount(board.getLikesCount())
+                .build();
+    }
+
+    @Override
+    public BoardLikeResponseDto getLikeStatus(Long userId, Long boardId) {
+        // 1. 게시글 존재 확인
+        Board board = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다."));
+                
+        // 2. 좋아요 상태 확인
+        boolean isLiked = boardLikeDAO.existsByUserIdAndBoardId(userId, boardId) > 0;
+        
+        return BoardLikeResponseDto.builder()
+                .boardId(boardId)
+                .userId(userId)
+                .isLiked(isLiked)
+                .likesCount(board.getLikesCount())
+                .build();
+    }
+
+    @Override
+    public Page<BoardResponseDto> getLikedBoardsByUser(Long userId, int page, int size) {
+        int offset = page * size;
+        
+        // 1. 좋아요한 게시글 목록 조회
+        List<BoardResponseDto> likedBoards = boardLikeDAO.findLikedBoardsByUserId(userId, offset, size);
+        
+        // 2. 전체 좋아요 수 조회
+        long totalElements = boardLikeDAO.countLikedBoardsByUserId(userId);
+        
+        return new PageImpl<>(likedBoards, PageRequest.of(page, size), totalElements);
     }
 
 }

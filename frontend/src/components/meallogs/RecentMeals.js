@@ -136,7 +136,8 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
   };
 
   const handleQuantityChange = (e) => {
-    const quantity = Number(e.target.value);
+    const value = e.target.value;
+    const quantity = value === '' ? '' : Number(value);
     setNewMealLog(prev => ({ ...prev, quantity }));
   };
 
@@ -430,7 +431,7 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
                 fullWidth
                 type="number"
                 label="수량 (g)"
-                value={newMealLog.quantity}
+                value={newMealLog.quantity.toString()}
                 onChange={handleQuantityChange}
                 InputProps={{
                   inputProps: { min: 0 }

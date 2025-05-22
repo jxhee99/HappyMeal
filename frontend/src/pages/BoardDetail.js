@@ -77,7 +77,8 @@ const BoardDetail = () => {
           likesCount: likesCountResponse.data
         });
         setComments(commentsResponse.data);
-        setLiked(likeResponse.data.isLiked);
+        console.log('설정할 좋아요 상태:', likeResponse.data.liked);
+        setLiked(likeResponse.data.liked);
       } catch (error) {
         console.error('데이터 로딩 실패:', error);
         if (error.response) {
@@ -108,7 +109,8 @@ const BoardDetail = () => {
       console.log('좋아요 토글 응답:', response.data); // 디버깅용 로그
       
       // 서버 응답에 따라 상태 업데이트
-      setLiked(response.data.isLiked);
+      console.log('설정할 좋아요 상태:', response.data.liked);
+      setLiked(response.data.liked);
       
       // 좋아요 수 업데이트
       const likesCountResponse = await BoardService.getLikesCount(id);
@@ -287,7 +289,7 @@ const BoardDetail = () => {
             <IconButton 
               onClick={handleLike} 
               sx={{ 
-                color: liked ? '#fb3d62' : 'default',
+                color: liked ? '#fb3d62' : 'inherit',
                 '&:hover': { color: '#fb3d62' } 
               }}
             >

@@ -8,6 +8,11 @@ const MotionBox = motion(Box);
 const DEFAULT_FOOD_IMAGE = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=400&h=300";
 
 const StyledCard = styled(Box)(({ theme }) => ({
+  width: '270px',
+  minHeight: '420px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
   padding: '24px',
   borderRadius: '16px',
   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
@@ -15,6 +20,7 @@ const StyledCard = styled(Box)(({ theme }) => ({
   border: '1px solid rgba(255, 255, 255, 0.1)',
   transition: 'all 0.3s ease',
   cursor: 'pointer',
+  boxSizing: 'border-box',
   '&:hover': {
     transform: 'translateY(-4px)',
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
@@ -23,7 +29,7 @@ const StyledCard = styled(Box)(({ theme }) => ({
 
 const MealImage = styled('img')({
   width: '100%',
-  height: '200px',
+  height: '180px',
   objectFit: 'cover',
   borderRadius: '12px',
   marginBottom: '16px',
@@ -63,6 +69,7 @@ const NutritionChip = styled(Box)(({ color }) => ({
 
 function FoodCard({ food, onClick }) {
   const [imgSrc, setImgSrc] = useState(food.imgUrl || DEFAULT_FOOD_IMAGE);
+  const [hovered, setHovered] = useState(false);
 
   const handleImageError = () => {
     setImgSrc(DEFAULT_FOOD_IMAGE);
@@ -74,7 +81,18 @@ function FoodCard({ food, onClick }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <StyledCard onClick={onClick}>
+      <StyledCard
+        onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        sx={{
+          transform: hovered ? 'scale(1.07)' : 'scale(1)',
+          zIndex: hovered ? 10 : 1,
+          boxShadow: hovered ? '0 8px 32px rgba(0,0,0,0.13)' : undefined,
+          transition: 'transform 0.22s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(0.4,0,0.2,1)',
+          cursor: 'pointer',
+        }}
+      >
         <MealImage 
           src={imgSrc}
           alt={food.name}
@@ -96,20 +114,6 @@ function FoodCard({ food, onClick }) {
             지방 {food.fat}g
           </NutritionChip>
         </NutritionInfo>
-        <Button
-          variant="outlined"
-          fullWidth
-          sx={{
-            borderColor: '#FF6B6B',
-            color: '#FF6B6B',
-            '&:hover': {
-              borderColor: '#FF8E53',
-              backgroundColor: 'rgba(255, 107, 107, 0.05)',
-            },
-          }}
-        >
-          상세 정보 보기
-        </Button>
       </StyledCard>
     </MotionBox>
   );

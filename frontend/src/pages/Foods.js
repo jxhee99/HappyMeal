@@ -248,13 +248,22 @@ function Foods() {
 
         {foods && foods.length > 0 ? (
           <>
-            <Grid container spacing={3} justifyContent="center">
-              {foods.map((food) => (
-                <Grid item key={food.foodId}>
-                  <FoodCard food={food} />
-                </Grid>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 2,
+                justifyItems: 'start',
+                alignItems: 'stretch',
+                width: '100%',
+                pl: 2,
+                mb: 4,
+              }}
+            >
+              {foods.slice(0, 8).map((food) => (
+                <FoodCard key={food.foodId} food={food} />
               ))}
-            </Grid>
+            </Box>
 
             <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
               <Pagination

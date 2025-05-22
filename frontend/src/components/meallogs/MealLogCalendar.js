@@ -81,6 +81,7 @@ const MealLogCalendar = ({ onDateSelect }) => {
           <DateCalendar
             value={selectedDate}
             onChange={handleDateChange}
+            maxDate={new Date()}
             sx={{
               width: '100%',
               '& .MuiPickersCalendarHeader-root': {

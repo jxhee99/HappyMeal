@@ -4,10 +4,7 @@ import ch.qos.logback.core.spi.ErrorCodes;
 import com.ssafy.happymeal.domain.food.dao.FoodDAO;
 import com.ssafy.happymeal.domain.food.entity.Food;
 import com.ssafy.happymeal.domain.meallog.dao.MealLogDAO;
-import com.ssafy.happymeal.domain.meallog.dto.MealLogDto;
-import com.ssafy.happymeal.domain.meallog.dto.MealLogRequestDto;
-import com.ssafy.happymeal.domain.meallog.dto.MealLogResponseDto;
-import com.ssafy.happymeal.domain.meallog.dto.MealLogStatsDto;
+import com.ssafy.happymeal.domain.meallog.dto.*;
 import com.ssafy.happymeal.domain.meallog.entity.MealLog;
 import com.ssafy.happymeal.domain.user.dao.UserDAO;
 import com.ssafy.happymeal.global.exception.CustomException;
@@ -23,7 +20,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -115,58 +112,77 @@ public class MealLogServiceIml implements MealLogService{
     /* 식단 기록 수정 */
     @Override
     @Transactional
-    public void updateMealLog(Long userId, Long logId, MealLogRequestDto requestDto) {
-        // 일치하는 식단 기록이 없을 경우
+    public MealLogUpdateResponseDto updateMealLog(Long userId, Long logId, MealLogRequestDto requestDto) {
+        // 기존 식단 기록 조회 및 존재 여부 확인
         MealLog mealLog = mealLogDAO.findById(logId)
                 .orElseThrow(() -> new NoMealLogFoundException("logId={"+logId+"}와/과 일치하는 식단 기록이 존재하지 않습니다."));
 
-        boolean isChanged = false;
+        boolean isChanged = false; // 실제 DB 업데이트 여부
 
         // 1. food 변경
-        Food food = null;
+        Food newFood = null; // 새로 참조할 food 엔티티
+        // DTO의 foodId는 @NotNull로 인해 null이 아님을 보장받음 (Bean Validation 선행)
+        // -> mealLog.getFoodId() == null 검사 할 필요 없음
         // dto.getFoodId()가 기존 mealLog의 foodId와 다르거나, mealLog에 foodId가 없었다면 새로 조회
-        if(mealLog.getFoodId() == null || !requestDto.getFoodId().equals(mealLog.getFoodId())) {
-            food = foodDAO.findById(requestDto.getFoodId())
+        if(!requestDto.getFoodId().equals(mealLog.getFoodId())) {
+            newFood = foodDAO.findById(requestDto.getFoodId())
                     .orElseThrow(() -> new RuntimeException("foodId={"+requestDto.getFoodId()+"}와/과 일치하는 음식이 존재하지 않습니다."));
-            mealLog.setFoodId(food.getFoodId());
+            mealLog.setFoodId(newFood.getFoodId());
             isChanged = true;
         }
-//        else {
-//            food = foodDAO.findById(mealLog.getFoodId())
-//                    // 전역예외처리에서 처리하고 싶음
-//        }
 
         // 2. 수량 변경
-        if(requestDto.getQuantity() != null && requestDto.getQuantity().compareTo(mealLog.getQuantity()) != 0) {
+        // DTO의 quantity는 @NotNull, @DecimalMin(0.0, inclusive=false)으로 유효성 보장
+        if(mealLog.getQuantity() == null || requestDto.getQuantity().compareTo(mealLog.getQuantity()) != 0) {
             mealLog.setQuantity(requestDto.getQuantity());
             isChanged = true;
         }
 
         // 3. mealType 변경
-        if(requestDto.getMealType() != null && !requestDto.getMealType().equals(mealLog.getMealType())) {
+        if(mealLog.getMealType() == null || !requestDto.getMealType().equals(mealLog.getMealType())) {
             mealLog.setMealType(requestDto.getMealType());
             isChanged = true;
         }
 
-        // 4. mealDate 변경
-        if(requestDto.getMealDate() != null && !requestDto.getMealDate().equals(mealLog.getMealDate())) {
-            mealLog.setMealDate(requestDto.getMealDate());
+        // 4. imgUrl 변경
+        /* requestDto.imgUrl 없으면 -> foodId 변경시 새 food 이미지 / foodId 그대로면 기존 이미지 유지. */
+        // foodId가 변경되지 않았고 DTO에 imgUrl도 없다면, 기존 imgUrl 유지
+        String updateImgUrl = mealLog.getImgUrl();
+
+        // 요청 DTO에 사용자가 명시적으로 이미지 URL을 제공한 경우:
+        if(requestDto.getImgUrl() != null && !requestDto.getImgUrl().trim().isEmpty()) {
+            updateImgUrl = requestDto.getImgUrl();
             isChanged = true;
         }
-
-        // 5. imgUrl 변경
-        if(requestDto.getImgUrl() != null && !requestDto.getImgUrl().equals(mealLog.getImgUrl())) {
-            mealLog.setImgUrl(requestDto.getImgUrl());
+        // 2. 요청 DTO에 이미지 URL이 제공되지 않았거나 빈 문자열("")인 경우:
+        else {
+            if(newFood != null) { // food가 변경되었다면 새 food의 이미지 url을 받음
+                if(!newFood.getImgUrl().equals(mealLog.getImgUrl()))
+                if(!Objects.equals(newFood.getImgUrl(), mealLog.getImgUrl())) {
+                    updateImgUrl = newFood.getImgUrl();
+                    isChanged = true;
+                }
+            }
         }
 
+        mealLog.setImgUrl(updateImgUrl); // 최종으로 결정된 이미지url 저장
+
+        // 5.  변경사항이 있을 경우에만 DB 업데이트
         if(isChanged) {
             mealLogDAO.updateMealLog(mealLog);
             log.info("식단기록 업데이트 완료 : logId={}, userId={}", logId, userId);
         } else {
             log.info("식단 기록 업데이트 요청 : 변경 내용 없음.  logId={}, userId={}", logId, userId);
         }
-//        return responseMealLog;
 
+        // 6. 수정 내용 반환
+        return MealLogUpdateResponseDto.builder()
+                .logId(mealLog.getLogId())
+                .foodId(mealLog.getFoodId())
+                .quantity(mealLog.getQuantity())
+                .mealType(mealLog.getMealType())
+                .imgUrl(mealLog.getImgUrl())
+                .build();
     }
 
     /* 식단 기록 상세 조회 */

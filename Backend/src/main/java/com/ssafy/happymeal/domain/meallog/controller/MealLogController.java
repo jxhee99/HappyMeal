@@ -1,9 +1,6 @@
 package com.ssafy.happymeal.domain.meallog.controller;
 
-import com.ssafy.happymeal.domain.meallog.dto.MealLogDto;
-import com.ssafy.happymeal.domain.meallog.dto.MealLogRequestDto;
-import com.ssafy.happymeal.domain.meallog.dto.MealLogResponseDto;
-import com.ssafy.happymeal.domain.meallog.dto.MealLogStatsDto;
+import com.ssafy.happymeal.domain.meallog.dto.*;
 import com.ssafy.happymeal.domain.meallog.entity.MealLog;
 import com.ssafy.happymeal.domain.meallog.service.MealLogService;
 import jakarta.validation.Valid;
@@ -103,10 +100,9 @@ public class MealLogController {
             @Valid @RequestBody MealLogRequestDto requestDto) {
         Long userId = Long.parseLong(userDetails.getUsername());
         log.info("식단 수정 요청 : userId={}, logId={}", userId, logId);
-//        MealLog updateMealLog =
-        mealLogService.updateMealLog(userId, logId, requestDto);
+        MealLogUpdateResponseDto response =  mealLogService.updateMealLog(userId, logId, requestDto);
         log.info("식단 수정 완료 : logId={}",logId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(response);
 
     }
 }

@@ -118,24 +118,25 @@ public class BoardServiceImpl implements BoardService{
     public BoardDetailResponseDto getBoardDetailById(Long boardId) {
         log.info("게시글 상세 조회 서비스 시작 - boardId: {}", boardId);
 
+        // 1. 게시글 조회
+        Board board = boardDAO.findBoardById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다. ID: " + boardId));
+
+        // 2. 조회수 증가
         int updatedRows = boardDAO.incrementViewCount(boardId);
         if (updatedRows == 0) {
             log.warn("게시글(ID: {}) 조회수 증가 실패 또는 해당 게시글이 존재하지 않을 수 있음.", boardId);
         }
 
-        Board board = boardDAO.findBoardById(boardId)
-                .orElseThrow(() -> new EntityNotFoundException("게시글을 찾을 수 없습니다. ID: " + boardId));
-
+        // 3. 작성자 정보 조회
         User author = userDao.findById(board.getUserId())
                 .orElse(User.builder().nickname("탈퇴한 사용자").userId(board.getUserId()).build());
 
-        List<Block> blockEntities = blockDAO.findBlocksByBoardId(boardId); // List<Block> 조회
+        // 4. 블록 정보 조회
+        List<Block> blockEntities = blockDAO.findBlocksByBoardId(boardId);
 
-        // ❗️❗️❗️ 수정된 부분 ❗️❗️❗️
-        // BoardDetailResponseDto.fromEntities는 List<Block>을 받아서 내부에서 List<BlockResponseDto>로 변환합니다.
-        // 따라서, blockResponseDtos로 미리 변환하지 않고, blockEntities (List<Block>)를 직접 전달합니다.
         log.info("게시글 상세 조회 서비스 완료 - boardId: {}", board.getBoardId());
-        return BoardDetailResponseDto.fromEntities(board, author, blockEntities); // blockEntities 전달
+        return BoardDetailResponseDto.fromEntities(board, author, blockEntities);
     }
 
     // 댓글/대댓글 생성

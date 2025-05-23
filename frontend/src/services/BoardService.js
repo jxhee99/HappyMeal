@@ -55,7 +55,7 @@ const BoardService = {
     try {
       const response = await axiosInstance.get('/boards/search/author', {
         params: {
-          author,
+          nickname: author,
           page: params.page || 0,
           size: params.size || 10
         }

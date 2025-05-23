@@ -165,7 +165,7 @@ public class BoardController {
         log.info("게시글 상세 조회 요청 수신 - boardId: {}, 요청자 userId (있다면): {}", boardId, currentUserId);
 
         BoardDetailResponseDto boardDetailResponse = boardService.getBoardDetailById(boardId);
-        log.info("게시글 상세 조회 완료 - boardId: {}", boardDetailResponse.getBoardId());
+        //log.info("게시글 상세 조회 완료 - boardId: {}", boardDetailResponse.getBoardId());
 
         return ResponseEntity.ok(boardDetailResponse);
     }

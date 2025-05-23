@@ -19,6 +19,22 @@ import {
 } from '@mui/icons-material';
 
 const BoardCard = ({ post, categories, onClick }) => {
+  // 데이터 매핑 및 디버깅
+  const mappedPost = {
+    ...post,
+    content: post.content || '',
+    imageUrl: post.imageUrl || '',
+    nickName: post.nickName || '알 수 없음',
+    views: post.views || 0,
+    likesCount: post.likesCount || 0,
+    commentsCount: post.commentsCount || 0
+  };
+
+  console.log('원본 post 데이터:', post);
+  console.log('매핑된 post 데이터:', mappedPost);
+  console.log('content 필드:', post.content);
+  console.log('imageUrl 필드:', post.imageUrl);
+
   return (
     <Card 
       sx={{ 
@@ -39,8 +55,8 @@ const BoardCard = ({ post, categories, onClick }) => {
           flexShrink: 0,
           objectFit: 'cover',
         }}
-        image="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=60"
-        alt={post.title}
+        image={mappedPost.imageUrl || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=60"}
+        alt={mappedPost.title}
       />
       <CardContent sx={{ 
         flexGrow: 1,
@@ -52,14 +68,14 @@ const BoardCard = ({ post, categories, onClick }) => {
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <Chip
-              label={categories.find(c => c.id === Number(post.categoryId))?.name || '기타'}
+              label={categories.find(c => c.id === Number(mappedPost.categoryId))?.name || '기타'}
               size="small"
               color="primary"
               variant="outlined"
             />
             <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <AccessTimeIcon fontSize="small" />
-              {new Date(post.createAt).toLocaleDateString()}
+              {new Date(mappedPost.createAt).toLocaleDateString()}
             </Typography>
           </Box>
           <Typography 
@@ -76,7 +92,7 @@ const BoardCard = ({ post, categories, onClick }) => {
               WebkitBoxOrient: 'vertical',
             }}
           >
-            {post.title || '제목 없음'}
+            {mappedPost.title || '제목 없음'}
           </Typography>
           <Typography 
             variant="body1" 
@@ -90,32 +106,32 @@ const BoardCard = ({ post, categories, onClick }) => {
               WebkitBoxOrient: 'vertical',
             }}
           >
-            {post.content || '내용 없음'}
+            {mappedPost.content || '내용 없음'}
           </Typography>
         </Box>
         <Box>
           <Divider sx={{ my: 2 }} />
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              {post.nickName || '알 수 없음'}
+              {mappedPost.nickName}
             </Typography>
             <Box sx={{ display: 'flex', gap: 3 }}>
               <Tooltip title="조회수">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <VisibilityIcon fontSize="small" />
-                  <Typography variant="body2">{post.views || 0}</Typography>
+                  <Typography variant="body2">{mappedPost.views}</Typography>
                 </Box>
               </Tooltip>
               <Tooltip title="좋아요">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <FavoriteIcon fontSize="small" />
-                  <Typography variant="body2">{post.likesCount || 0}</Typography>
+                  <Typography variant="body2">{mappedPost.likesCount}</Typography>
                 </Box>
               </Tooltip>
               <Tooltip title="댓글">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <ChatBubbleOutlineIcon fontSize="small" />
-                  <Typography variant="body2">{post.commentsCount || 0}</Typography>
+                  <Typography variant="body2">{mappedPost.commentsCount}</Typography>
                 </Box>
               </Tooltip>
             </Box>

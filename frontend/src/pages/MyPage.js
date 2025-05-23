@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Container,
@@ -27,11 +27,13 @@ import {
   Delete as DeleteIcon,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
+  Restaurant as RestaurantIcon,
 } from '@mui/icons-material';
 import axios from '../services/axiosConfig';
 
 const MyPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const auth = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [profile, setProfile] = useState(null);
@@ -49,6 +51,7 @@ const MyPage = () => {
   const [posts, setPosts] = useState([]);
   const [comments, setComments] = useState([]);
   const [likes, setLikes] = useState([]);
+  const [foodRequests, setFoodRequests] = useState([]);
 
   // 프로필 정보 조회
   const fetchProfile = async () => {
@@ -116,6 +119,23 @@ const MyPage = () => {
     }
   };
 
+  // 음식 등록 요청 목록 조회
+  const fetchFoodRequests = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/food-requests/my?page=${page - 1}&size=${itemsPerPage}`);
+      console.log('음식 등록 요청 목록 응답:', response.data);
+      setFoodRequests(response.data || []);
+      setTotalPages(1);
+    } catch (err) {
+      setError('음식 등록 요청 목록을 불러오는데 실패했습니다.');
+      console.error('음식 등록 요청 조회 실패:', err);
+      setFoodRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!auth.isAuthenticated) {
       navigate('/login');
@@ -138,6 +158,9 @@ const MyPage = () => {
       case 2:
         fetchLikes();
         break;
+      case 3:
+        fetchFoodRequests();
+        break;
       default:
         break;
     }
@@ -156,10 +179,25 @@ const MyPage = () => {
       case 2:
         fetchLikes();
         break;
+      case 3:
+        fetchFoodRequests();
+        break;
       default:
         break;
     }
   }, [page]);
+
+  useEffect(() => {
+    // URL의 tab 파라미터 확인
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam !== null) {
+      const tabIndex = parseInt(tabParam);
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
+        setTabValue(tabIndex);
+      }
+    }
+  }, [location.search]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -272,6 +310,7 @@ const MyPage = () => {
               <Tab label="작성한 글" />
               <Tab label="작성한 댓글" />
               <Tab label="좋아요" />
+              <Tab label="음식 등록 요청" />
             </Tabs>
 
             {/* 작성한 글 */}
@@ -510,6 +549,81 @@ const MyPage = () => {
                   <Box sx={{ textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
                       좋아요한 글이 없습니다.
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {/* 음식 등록 요청 */}
+            {tabValue === 3 && (
+              <Box sx={{ p: 2 }}>
+                {foodRequests?.length > 0 ? (
+                  <>
+                    <List>
+                      {foodRequests.map((request) => (
+                        <ListItem
+                          key={request.foodRequestId}
+                          sx={{
+                            borderBottom: '1px solid #eee',
+                            '&:last-child': { borderBottom: 'none' }
+                          }}
+                        >
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Typography variant="subtitle1">
+                                  {request.name}
+                                </Typography>
+                                <Chip
+                                  size="small"
+                                  label={
+                                    request.isRegistered === 'PENDING' ? '대기중' :
+                                    request.isRegistered === 'APPROVED' ? '승인됨' :
+                                    request.isRegistered === 'REJECTED' ? '거절됨' : '알 수 없음'
+                                  }
+                                  color={
+                                    request.isRegistered === 'PENDING' ? 'warning' :
+                                    request.isRegistered === 'APPROVED' ? 'success' :
+                                    request.isRegistered === 'REJECTED' ? 'error' : 'default'
+                                  }
+                                  variant="outlined"
+                                />
+                              </Box>
+                            }
+                            secondary={
+                              <Typography component="span" variant="body2">
+                                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                                  <Chip
+                                    size="small"
+                                    label={`카테고리: ${request.category}`}
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    size="small"
+                                    label={`1회 제공량: ${request.servingSize}${request.unit}`}
+                                    variant="outlined"
+                                  />
+                                  <Chip
+                                    size="small"
+                                    label={`칼로리: ${request.calories}kcal`}
+                                    variant="outlined"
+                                  />
+                                  <Typography component="span" variant="body2" color="text.secondary">
+                                    {formatDate(request.createAt)}
+                                  </Typography>
+                                </Box>
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </>
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      등록한 음식 요청이 없습니다.
                     </Typography>
                   </Box>
                 )}

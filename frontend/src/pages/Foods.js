@@ -5,6 +5,8 @@ import { foodService } from "../services/foodService";
 import { foodRequestService } from '../services/FoodRequestService';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const categories = [
   "전체",
@@ -31,6 +33,8 @@ const VisuallyHiddenInput = styled('input')({
 });
 
 function Foods() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [foods, setFoods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -122,6 +126,10 @@ function Foods() {
   };
 
   const handleOpenRequestModal = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     setOpenRequestModal(true);
   };
 
@@ -174,6 +182,8 @@ function Foods() {
       setSelectedFile(null);
       setPreviewUrl('');
       alert('음식 추가 요청이 완료되었습니다.');
+      // 마이페이지의 음식 등록 요청 탭으로 리다이렉트 (탭 인덱스 3)
+      navigate('/mypage?tab=3');
     } catch (error) {
       console.error('음식 추가 요청 실패:', error);
       alert('음식 추가 요청에 실패했습니다.');

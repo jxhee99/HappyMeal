@@ -59,17 +59,20 @@ const BoardDetail = () => {
         setLoading(true);
         setError('');
         
-        // 게시글 상세 정보와 좋아요 상태만 가져옵니다
-        const [boardResponse, likeResponse] = await Promise.all([
+        // 게시글 상세 정보, 좋아요 상태, 댓글 목록을 병렬로 가져옵니다
+        const [boardResponse, likeResponse, commentsResponse] = await Promise.all([
           BoardService.getBoardDetail(id),
-          user ? BoardService.getLikeStatus(id) : Promise.resolve({ data: { isLiked: false } })
+          user ? BoardService.getLikeStatus(id) : Promise.resolve({ data: { isLiked: false } }),
+          BoardService.getBoardComments(id)
         ]);
 
         console.log('게시글 상세 응답:', boardResponse.data);
         console.log('좋아요 상태 응답:', likeResponse.data);
+        console.log('댓글 목록 응답:', commentsResponse.data);
         
         setPost(boardResponse.data);
         setLiked(likeResponse.data.liked);
+        setComments(commentsResponse.data);
       } catch (error) {
         console.error('데이터 로딩 실패:', error);
         if (error.response) {

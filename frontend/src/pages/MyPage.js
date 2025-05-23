@@ -70,6 +70,7 @@ const MyPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`/mypages/posts?page=${page - 1}&size=${itemsPerPage}`);
+      console.log('게시글 목록 응답 데이터:', response.data.content); // 각 게시글의 상세 데이터 확인
       setPosts(response.data.content || []);
       setTotalPages(Math.ceil((response.data.totalElements || 0) / itemsPerPage));
     } catch (err) {
@@ -86,6 +87,7 @@ const MyPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`/mypages/comments?page=${page - 1}&size=${itemsPerPage}`);
+      console.log('댓글 목록 응답:', response.data); // 디버깅용 로그 추가
       setComments(response.data.content || []);
       setTotalPages(Math.ceil((response.data.totalElements || 0) / itemsPerPage));
     } catch (err) {
@@ -102,6 +104,7 @@ const MyPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(`/mypages/likes?page=${page - 1}&size=${itemsPerPage}`);
+      console.log('좋아요 목록 응답 데이터:', response.data.content); // 각 게시글의 상세 데이터 확인
       setLikes(response.data.content || []);
       setTotalPages(Math.ceil((response.data.totalElements || 0) / itemsPerPage));
     } catch (err) {
@@ -300,17 +303,17 @@ const MyPage = () => {
                                 <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
                                   <Chip
                                     size="small"
-                                    label={`조회수 ${post.views}`}
+                                    label={`조회수 ${post.views || 0}`}
                                     variant="outlined"
                                   />
                                   <Chip
                                     size="small"
-                                    label={`좋아요 ${post.likes_count}`}
+                                    label={`좋아요 ${post.likesCount || 0}`}
                                     variant="outlined"
                                   />
                                   <Chip
                                     size="small"
-                                    label={`댓글 ${post.commentsCount}`}
+                                    label={`댓글 ${post.commentsCount || post.comments_count || 0}`}
                                     variant="outlined"
                                   />
                                   <Typography component="span" variant="body2" color="text.secondary">
@@ -399,6 +402,13 @@ const MyPage = () => {
                               <Typography variant="body2" color="text.secondary">
                                 {formatDate(comment.createAt)}
                               </Typography>
+                              {comment.boardCommentsCount !== undefined && (
+                                <Chip
+                                  size="small"
+                                  label={`댓글 ${comment.boardCommentsCount}`}
+                                  variant="outlined"
+                                />
+                              )}
                             </Box>
                           </Box>
                         </ListItem>
@@ -452,17 +462,17 @@ const MyPage = () => {
                                 <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
                                   <Chip
                                     size="small"
-                                    label={`조회수 ${post.views}`}
+                                    label={`조회수 ${post.views || 0}`}
                                     variant="outlined"
                                   />
                                   <Chip
                                     size="small"
-                                    label={`좋아요 ${post.likes_count}`}
+                                    label={`좋아요 ${post.likesCount || 0}`}
                                     variant="outlined"
                                   />
                                   <Chip
                                     size="small"
-                                    label={`댓글 ${post.commentsCount}`}
+                                    label={`댓글 ${post.commentsCount || post.comments_count || 0}`}
                                     variant="outlined"
                                   />
                                   <Typography component="span" variant="body2" color="text.secondary">

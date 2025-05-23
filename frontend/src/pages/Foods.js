@@ -65,8 +65,14 @@ function Foods() {
           // 검색어가 있는 경우 검색 API 호출
           response = await foodService.searchFoods(searchTerm);
           console.log('검색 결과:', response);
-          setFoods(response.content || []);
-          setTotalPages(Math.ceil((response.totalElements || 0) / 10));
+
+          if (!response || (Array.isArray(response) && response.length === 0)) {
+            setFoods([]);
+            setTotalPages(1);
+          } else {
+            setFoods(Array.isArray(response) ? response : (response.content || []));
+            setTotalPages(1);
+          }
         } else {
           // 검색어가 없는 경우 전체 목록 조회
           response = await foodService.getFoods({

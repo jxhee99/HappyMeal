@@ -177,6 +177,7 @@ public class BoardController {
     * POST api/boards/{boardId}/comments
     * 접근 권한 : USER */
     @PostMapping("/{boardId}/comments")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> createComment(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long boardId,
@@ -189,7 +190,7 @@ public class BoardController {
 
     }
 
-    /* 게시글 내의 댓글/대댓글(1개) 조회
+    /* 게시글 내의 댓글/대댓글 조회
      * GET api/boards/{boardId}/comments
      * 접근 권한 : ALL */
     @GetMapping("/{boardId}/comments")

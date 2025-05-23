@@ -24,7 +24,17 @@ public interface BoardDAO {
                 b.update_at as updateAt,
                 b.views as views,
                 b.likes_count as likes_count,
-                b.comments_count as commentsCount
+                b.comments_count as commentsCount,
+                (SELECT blk.content_text 
+                From Block blk 
+                Where blk.board_id = b.board_id And blk.block_type="text" 
+                Order by order_index 
+                Limit 1) as content, 
+                (SELECT blk.image_url 
+                From Block blk 
+                Where blk.board_id = b.board_id And blk.block_type="image" 
+                Order by order_index 
+                Limit 1) as imageUrl 
             FROM
                 Board b
             INNER JOIN
@@ -93,7 +103,17 @@ public interface BoardDAO {
                 b.update_at as updateAt,
                 b.views as views,
                 b.likes_count as likes_count,
-                b.comments_count as commentsCount
+                b.comments_count as commentsCount,
+                (SELECT blk.content_text 
+                From Block blk 
+                Where blk.board_id = b.board_id And blk.block_type="text" 
+                Order by order_index 
+                Limit 1) as content, 
+                (SELECT blk.image_url 
+                From Block blk 
+                Where blk.board_id = b.board_id And blk.block_type="image" 
+                Order by order_index 
+                Limit 1) as imageUrl
             FROM
                 Board b
             INNER JOIN
@@ -146,7 +166,17 @@ public interface BoardDAO {
                 b.update_at as updateAt,
                 b.views as views,
                 b.likes_count as likes_count,
-                b.comments_count as commentsCount
+                b.comments_count as commentsCount,
+                (SELECT blk.content_text 
+                From Block blk 
+                Where blk.board_id = b.board_id And blk.block_type="text" 
+                Order by order_index 
+                Limit 1) as content, 
+                (SELECT blk.image_url 
+                From Block blk 
+                Where blk.board_id = b.board_id And blk.block_type="image" 
+                Order by order_index 
+                Limit 1) as imageUrl
             FROM
                 Board b
             INNER JOIN

@@ -58,7 +58,7 @@ public class SecurityConfig {
                                 "/api/auth/**", // 인증 관련 API (로그인 시작, 콜백 등)
                                 "/api/foods", // 음식 검색 (GET) - 명세상 모든 사용자 접근 가능
                                 "/api/foods/{foodId}", // 음식 상세 조회 (GET) - 명세상 모든 사용자 접근 가능
-                                "/api/boards", // 게시판 목록 조회 (GET)
+                                "/api/boards/**", // 게시판 목록 조회 (GET)
                                 "/api/boards/{boardId}" // 게시판 상세 조회 (GET)
                                 // 필요시 h2-console 접근 허용 (개발용)
                                 // , "/h2-console/**"
@@ -68,10 +68,10 @@ public class SecurityConfig {
                         .hasRole("ADMIN") // ADMIN 역할 필요
 
                         .requestMatchers(
-                                "/api/users/me/**", // 내 정보 관련
+                                "/api/mypages/**", // 내 정보 관련
                                 "/api/meallogs/**", // 식단 기록 관련
                                 "/api/food-requests", // 음식 요청 (POST)
-                                "/api/board" // 게시글 작성(POST), 수정(PUT), 삭제(DELETE) - 세부 검증은 컨트롤러/서비스에서
+                                "/api/boards/**" // 게시글 작성(POST), 수정(PUT), 삭제(DELETE) - 세부 검증은 컨트롤러/서비스에서
                         ).hasAnyRole("USER", "ADMIN") // USER 또는 ADMIN 역할 필요
 //                        ).hasAuthority("USER") // JWT에 "USER"라고 넣었을 때만 일치
 

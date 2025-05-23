@@ -149,11 +149,9 @@ public class BoardController {
     }
 
     @GetMapping("/{boardId}")
-    // 이 API의 접근 권한은 SecurityConfig에서 URL 패턴으로 설정하거나, 여기서 @PreAuthorize로 명시 가능
-    // 예: @PreAuthorize("permitAll()") 또는 @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BoardDetailResponseDto> getBoardDetail(
-            @PathVariable Long boardId, // @Parameter 설명 생략
-            @Parameter(hidden = true) // API 문서에서 숨김 처리 (자동 주입, 선택적)
+            @PathVariable Long boardId,
+            @Parameter(hidden = true)
             @AuthenticationPrincipal UserDetails userDetails) {
 
         Long currentUserId = null;
@@ -161,7 +159,6 @@ public class BoardController {
             try {
                 currentUserId = Long.parseLong(userDetails.getUsername());
             } catch (NumberFormatException e) {
-                // 비로그인 사용자도 접근 가능(required=false)하므로, 파싱 오류는 경고만 남기고 무시
                 log.warn("상세 조회 시 현재 사용자 ID 파싱 오류 (무시하고 진행): username='{}'", userDetails.getUsername(), e);
             }
         }

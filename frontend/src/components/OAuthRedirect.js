@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export const OAuthRedirect = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
 
   useEffect(() => {
     const handleOAuthRedirect = () => {
@@ -22,18 +24,16 @@ export const OAuthRedirect = () => {
           throw new Error('Required parameters missing');
         }
 
-        // 토큰 저장
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-        
-        // 사용자 정보 저장
+        // 사용자 정보 객체 생성
         const userInfo = {
           userId,
           nickname,
           role
         };
         console.log('localStorage에 저장할 사용자 정보:', userInfo);
-        localStorage.setItem('user', JSON.stringify(userInfo));
+
+        // AuthContext의 login 함수를 사용하여 로그인 처리
+        login(userInfo, { accessToken, refreshToken });
 
         // 메인 페이지로 리디렉션
         navigate('/');
@@ -44,7 +44,7 @@ export const OAuthRedirect = () => {
     };
 
     handleOAuthRedirect();
-  }, [location, navigate]);
+  }, [location, navigate, login]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

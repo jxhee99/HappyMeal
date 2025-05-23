@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Grid,
@@ -42,10 +42,10 @@ const BoardDetail = () => {
   const [liked, setLiked] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
+  const fetchDataRef = useRef(null);
 
   useEffect(() => {
     console.log('BoardDetail 마운트, id:', id);
-    console.log('현재 로그인한 사용자:', user);
     
     if (!id) {
       console.error('id가 없습니다.');
@@ -54,26 +54,37 @@ const BoardDetail = () => {
       return;
     }
 
+    let isMounted = true;
+    let isFetching = false;
+
     const fetchData = async () => {
+      if (isFetching) {
+        console.log('이미 요청이 진행 중입니다.');
+        return;
+      }
+
       try {
+        isFetching = true;
+        if (!isMounted) return;
         setLoading(true);
         setError('');
         
-        // 게시글 상세 정보, 좋아요 상태, 댓글 목록을 병렬로 가져옵니다
-        const [boardResponse, likeResponse, commentsResponse] = await Promise.all([
+        // 게시글 상세 정보와 댓글 목록을 병렬로 가져옵니다
+        const [boardResponse, commentsResponse] = await Promise.all([
           BoardService.getBoardDetail(id),
-          user ? BoardService.getLikeStatus(id) : Promise.resolve({ data: { isLiked: false } }),
           BoardService.getBoardComments(id)
         ]);
 
+        if (!isMounted) return;
+
         console.log('게시글 상세 응답:', boardResponse.data);
-        console.log('좋아요 상태 응답:', likeResponse.data);
         console.log('댓글 목록 응답:', commentsResponse.data);
         
         setPost(boardResponse.data);
-        setLiked(likeResponse.data.liked);
         setComments(commentsResponse.data);
       } catch (error) {
+        if (!isMounted) return;
+        
         console.error('데이터 로딩 실패:', error);
         if (error.response) {
           const errorMessage = error.response.data?.message || '알 수 없는 오류가 발생했습니다.';
@@ -83,11 +94,35 @@ const BoardDetail = () => {
           setError('데이터를 불러오는데 실패했습니다.');
         }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
+        isFetching = false;
       }
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
+  // 좋아요 상태 조회를 위한 별도의 useEffect
+  useEffect(() => {
+    const fetchLikeStatus = async () => {
+      if (!id || !user) return;
+      
+      try {
+        const likeResponse = await BoardService.getLikeStatus(id);
+        console.log('좋아요 상태 응답:', likeResponse.data);
+        setLiked(likeResponse.data.liked);
+      } catch (error) {
+        console.error('좋아요 상태 조회 실패:', error);
+      }
+    };
+
+    fetchLikeStatus();
   }, [id, user]);
 
   const handleLike = async () => {

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Grid,
@@ -25,8 +26,11 @@ import {
 } from '@mui/material';
 import { foodRequestService } from '../services/FoodRequestService';
 import { foodService } from '../services/foodService';
+import { useAuth } from '../contexts/AuthContext';
 
 const Admin = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [tabValue, setTabValue] = useState(0);
   const [selectedFood, setSelectedFood] = useState(null);
   const [isFoodDialogOpen, setIsFoodDialogOpen] = useState(false);
@@ -36,6 +40,20 @@ const Admin = () => {
   // 음식 요청 관련 상태
   const [foodRequests, setFoodRequests] = useState([]);
   const [foods, setFoods] = useState([]);
+
+  // 관리자 권한 체크
+  useEffect(() => {
+    if (!user || user.role !== 'ADMIN') {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  // 컴포넌트 마운트 시 초기 데이터 로드
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      fetchFoodRequests();
+    }
+  }, [user]);
 
   // 음식 요청 목록 조회
   const fetchFoodRequests = async () => {

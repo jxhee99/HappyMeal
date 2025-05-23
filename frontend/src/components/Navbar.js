@@ -123,9 +123,12 @@ const Navbar = () => {
             component={Link}
             to="/"
             className="navbar-logo"
-            sx={{ textDecoration: 'none' }}
+            sx={{ 
+              textDecoration: 'none',
+              mr: 4  // 오른쪽 마진 추가
+            }}
           >
-            fruits basket
+            HappyMeal
           </Typography>
         </MotionBox>
 

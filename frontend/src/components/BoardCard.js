@@ -11,9 +11,11 @@ import {
   Divider,
 } from '@mui/material';
 import {
-  ThumbUp as ThumbUpIcon,
+  Favorite as FavoriteIcon,
+  FavoriteBorder as FavoriteBorderIcon,
   Visibility as VisibilityIcon,
   AccessTime as AccessTimeIcon,
+  ChatBubbleOutline as ChatBubbleOutlineIcon,
 } from '@mui/icons-material';
 
 const BoardCard = ({ post, categories, onClick }) => {
@@ -106,8 +108,14 @@ const BoardCard = ({ post, categories, onClick }) => {
               </Tooltip>
               <Tooltip title="좋아요">
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <ThumbUpIcon fontSize="small" />
+                  <FavoriteIcon fontSize="small" />
                   <Typography variant="body2">{post.likesCount || 0}</Typography>
+                </Box>
+              </Tooltip>
+              <Tooltip title="댓글">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <ChatBubbleOutlineIcon fontSize="small" />
+                  <Typography variant="body2">{post.commentsCount || 0}</Typography>
                 </Box>
               </Tooltip>
             </Box>

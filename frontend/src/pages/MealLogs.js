@@ -143,17 +143,22 @@ const MealLogs = () => {
           나의 식단 관리
         </Typography>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ position: 'relative', minHeight: '100vh' }}>
           {/* 식단 기록 캘린더 */}
           <Grid item xs={12} md={4}>
-            <StyledPaper elevation={3}>
+            <StyledPaper elevation={3} sx={{ height: '100%' }}>
               <SectionTitle>
                 <CalendarMonthIcon sx={{ color: '#FF6B6B', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   식단 캘린더
                 </Typography>
               </SectionTitle>
-              <MealLogCalendar onDateSelect={handleDateSelect} />
+              <Box sx={{ 
+                position: { md: 'sticky' },
+                top: { md: '80px' }
+              }}>
+                <MealLogCalendar onDateSelect={handleDateSelect} />
+              </Box>
             </StyledPaper>
           </Grid>
 
@@ -182,18 +187,23 @@ const MealLogs = () => {
 
           {/* 영양소 통계 */}
           <Grid item xs={12} md={4}>
-            <StyledPaper elevation={3}>
+            <StyledPaper elevation={3} sx={{ height: '100%' }}>
               <SectionTitle>
                 <BarChartIcon sx={{ color: '#FF6B6B', fontSize: 28 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                   영양소 분석
                 </Typography>
               </SectionTitle>
-              <NutritionSummary
-                selectedDate={selectedDate}
-                dailyStats={dailyStats}
-                weeklyStats={weeklyStats}
-              />
+              <Box sx={{ 
+                position: { md: 'sticky' },
+                top: { md: '80px' }
+              }}>
+                <NutritionSummary
+                  selectedDate={selectedDate}
+                  dailyStats={dailyStats}
+                  weeklyStats={weeklyStats}
+                />
+              </Box>
             </StyledPaper>
           </Grid>
         </Grid>

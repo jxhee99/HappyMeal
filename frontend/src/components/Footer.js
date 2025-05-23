@@ -27,7 +27,7 @@ function Footer() {
               textShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
-            fruits basket
+            HappyMeal
           </Typography>
         </MotionBox>
 
@@ -46,7 +46,7 @@ function Footer() {
             }}
           >
             fresh everyday!<br />
-            fruits basket is a fruit & vegetable shop
+            HappyMeal is a fruit & vegetable shop
           </Typography>
         </MotionBox>
 
@@ -121,7 +121,7 @@ function Footer() {
           >
             Hosting by imweb<br />
             이용약관 · 개인정보처리방침<br />
-            Copyright © 2025 fruits basket All rights reserved.
+            Copyright © 2025 HappyMeal All rights reserved.
           </Typography>
         </MotionBox>
       </Box>

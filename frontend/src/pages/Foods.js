@@ -20,6 +20,11 @@ const categories = [
   "면 및 만두류"
 ];
 
+const units = [
+  { value: 'g', label: '그램 (g)' },
+  { value: 'ml', label: '밀리리터 (ml)' }
+];
+
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
   clipPath: 'inset(50%)',
@@ -31,6 +36,51 @@ const VisuallyHiddenInput = styled('input')({
   whiteSpace: 'nowrap',
   width: 1,
 });
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    borderRadius: '16px',
+    padding: theme.spacing(2),
+    background: 'linear-gradient(135deg, #ffffff, #f8f9fa)',
+    overflow: 'visible',
+  },
+  '& .MuiDialogContent-root': {
+    overflow: 'visible',
+  },
+}));
+
+const StyledDialogTitle = styled(DialogTitle)(({ theme }) => ({
+  background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+  color: 'white',
+  borderRadius: '12px 12px 0 0',
+  padding: theme.spacing(2),
+  textAlign: 'center',
+  '& .MuiTypography-root': {
+    fontWeight: 700,
+    fontSize: '1.5rem',
+  },
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 1)',
+    },
+    '&.Mui-focused': {
+      backgroundColor: 'white',
+    },
+  },
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: '12px',
+  padding: theme.spacing(1.5),
+  textTransform: 'none',
+  fontWeight: 600,
+  fontSize: '1rem',
+}));
 
 function Foods() {
   const { isAuthenticated } = useAuth();
@@ -323,152 +373,264 @@ function Foods() {
           </Box>
         )}
 
-        <Dialog open={openRequestModal} onClose={handleCloseRequestModal} maxWidth="md" fullWidth>
-          <DialogTitle>음식 추가 요청</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="음식 이름"
-                  name="name"
-                  value={requestForm.name}
-                  onChange={handleRequestFormChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="카테고리"
-                  name="category"
-                  value={requestForm.category}
-                  onChange={handleRequestFormChange}
-                  select
+        <StyledDialog open={openRequestModal} onClose={handleCloseRequestModal} maxWidth="lg" fullWidth>
+          <StyledDialogTitle>
+            음식 추가 요청
+          </StyledDialogTitle>
+          <DialogContent sx={{ mt: 5, pt: 5, overflow: 'visible' }}>
+            <Grid container spacing={4}>
+              {/* 왼쪽: 이미지 업로드 영역 */}
+              <Grid item xs={12} md={4}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 2,
+                    border: '1px solid #FF6B6B',
+                    borderRadius: '16px',
+                    backgroundColor: 'rgba(255, 107, 107, 0.02)',
+                  }}
                 >
-                  <MenuItem value="KOREAN">한식</MenuItem>
-                  <MenuItem value="CHINESE">중식</MenuItem>
-                  <MenuItem value="JAPANESE">일식</MenuItem>
-                  <MenuItem value="WESTERN">양식</MenuItem>
-                  <MenuItem value="SNACK">간식</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  component="label"
-                  variant="outlined"
-                  startIcon={<CloudUploadIcon />}
-                  sx={{ width: '100%', mb: 2 }}
-                >
-                  이미지 업로드
-                  <VisuallyHiddenInput type="file" accept="image/*" onChange={handleFileChange} />
-                </Button>
-                {previewUrl && (
-                  <Box sx={{ mt: 2, textAlign: 'center' }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      이미지 미리보기
-                    </Typography>
+                  {!previewUrl ? (
                     <Box
-                      component="img"
-                      src={previewUrl}
-                      alt="음식 이미지 미리보기"
                       sx={{
-                        maxWidth: '100%',
-                        maxHeight: '200px',
-                        objectFit: 'contain',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px',
-                        p: 1
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 2,
+                        py: 4,
+                      }}
+                    >
+                      <CloudUploadIcon sx={{ fontSize: 48, color: '#FF6B6B' }} />
+                      <Typography variant="h6" color="text.secondary" align="center">
+                        음식 이미지를 업로드해주세요
+                      </Typography>
+                      <StyledButton
+                        component="label"
+                        variant="outlined"
+                        sx={{
+                          borderColor: '#FF6B6B',
+                          color: '#FF6B6B',
+                          '&:hover': {
+                            borderColor: '#FF8E53',
+                            backgroundColor: 'rgba(255, 107, 107, 0.04)',
+                          },
+                        }}
+                      >
+                        이미지 선택
+                        <VisuallyHiddenInput type="file" accept="image/*" onChange={handleFileChange} />
+                      </StyledButton>
+                    </Box>
+                  ) : (
+                    <Box sx={{ width: '100%', textAlign: 'center' }}>
+                      <Box
+                        component="img"
+                        src={previewUrl}
+                        alt="음식 이미지 미리보기"
+                        sx={{
+                          width: '100%',
+                          height: 'auto',
+                          maxHeight: '300px',
+                          objectFit: 'contain',
+                          borderRadius: '12px',
+                          mb: 2,
+                          boxShadow: '0 4px 12px rgba(255, 107, 107, 0.1)',
+                        }}
+                      />
+                      <StyledButton
+                        component="label"
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          borderColor: '#FF6B6B',
+                          color: '#FF6B6B',
+                          '&:hover': {
+                            borderColor: '#FF8E53',
+                            backgroundColor: 'rgba(255, 107, 107, 0.04)',
+                          },
+                        }}
+                      >
+                        이미지 변경
+                        <VisuallyHiddenInput type="file" accept="image/*" onChange={handleFileChange} />
+                      </StyledButton>
+                    </Box>
+                  )}
+                </Box>
+              </Grid>
+
+              {/* 오른쪽: 입력 폼 영역 */}
+              <Grid item xs={12} md={8}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <StyledTextField
+                      fullWidth
+                      label="음식 이름"
+                      name="name"
+                      value={requestForm.name}
+                      onChange={handleRequestFormChange}
+                      required
+                      variant="outlined"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <StyledTextField
+                      fullWidth
+                      label="카테고리"
+                      name="category"
+                      value={requestForm.category}
+                      onChange={handleRequestFormChange}
+                      select
+                      variant="outlined"
+                    >
+                      <MenuItem value="KOREAN">한식</MenuItem>
+                      <MenuItem value="CHINESE">중식</MenuItem>
+                      <MenuItem value="JAPANESE">일식</MenuItem>
+                      <MenuItem value="WESTERN">양식</MenuItem>
+                      <MenuItem value="SNACK">간식</MenuItem>
+                    </StyledTextField>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <StyledTextField
+                      fullWidth
+                      label="1회 제공량"
+                      name="servingSize"
+                      type="number"
+                      value={requestForm.servingSize}
+                      onChange={handleRequestFormChange}
+                      required
+                      variant="outlined"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <StyledTextField
+                      fullWidth
+                      label="단위"
+                      name="unit"
+                      value={requestForm.unit}
+                      onChange={handleRequestFormChange}
+                      select
+                      required
+                      variant="outlined"
+                    >
+                      {units.map((unit) => (
+                        <MenuItem key={unit.value} value={unit.value}>
+                          {unit.label}
+                        </MenuItem>
+                      ))}
+                    </StyledTextField>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <StyledTextField
+                      fullWidth
+                      label="칼로리"
+                      name="calories"
+                      type="number"
+                      value={requestForm.calories}
+                      onChange={handleRequestFormChange}
+                      required
+                      variant="outlined"
+                      InputProps={{
+                        endAdornment: <Typography variant="body2" color="text.secondary">kcal</Typography>,
                       }}
                     />
-                  </Box>
-                )}
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="1회 제공량"
-                  name="servingSize"
-                  type="number"
-                  value={requestForm.servingSize}
-                  onChange={handleRequestFormChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="단위"
-                  name="unit"
-                  value={requestForm.unit}
-                  onChange={handleRequestFormChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="칼로리"
-                  name="calories"
-                  type="number"
-                  value={requestForm.calories}
-                  onChange={handleRequestFormChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="탄수화물"
-                  name="carbs"
-                  type="number"
-                  value={requestForm.carbs}
-                  onChange={handleRequestFormChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="당류"
-                  name="sugar"
-                  type="number"
-                  value={requestForm.sugar}
-                  onChange={handleRequestFormChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="단백질"
-                  name="protein"
-                  type="number"
-                  value={requestForm.protein}
-                  onChange={handleRequestFormChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="지방"
-                  name="fat"
-                  type="number"
-                  value={requestForm.fat}
-                  onChange={handleRequestFormChange}
-                  required
-                />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <StyledTextField
+                      fullWidth
+                      label="탄수화물"
+                      name="carbs"
+                      type="number"
+                      value={requestForm.carbs}
+                      onChange={handleRequestFormChange}
+                      required
+                      variant="outlined"
+                      InputProps={{
+                        endAdornment: <Typography variant="body2" color="text.secondary">g</Typography>,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <StyledTextField
+                      fullWidth
+                      label="당류"
+                      name="sugar"
+                      type="number"
+                      value={requestForm.sugar}
+                      onChange={handleRequestFormChange}
+                      required
+                      variant="outlined"
+                      InputProps={{
+                        endAdornment: <Typography variant="body2" color="text.secondary">g</Typography>,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <StyledTextField
+                      fullWidth
+                      label="단백질"
+                      name="protein"
+                      type="number"
+                      value={requestForm.protein}
+                      onChange={handleRequestFormChange}
+                      required
+                      variant="outlined"
+                      InputProps={{
+                        endAdornment: <Typography variant="body2" color="text.secondary">g</Typography>,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <StyledTextField
+                      fullWidth
+                      label="지방"
+                      name="fat"
+                      type="number"
+                      value={requestForm.fat}
+                      onChange={handleRequestFormChange}
+                      required
+                      variant="outlined"
+                      InputProps={{
+                        endAdornment: <Typography variant="body2" color="text.secondary">g</Typography>,
+                      }}
+                    />
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseRequestModal}>취소</Button>
-            <Button onClick={handleSubmitRequest} variant="contained" color="primary">
+          <DialogActions sx={{ p: 3, gap: 2 }}>
+            <StyledButton
+              onClick={handleCloseRequestModal}
+              variant="outlined"
+              sx={{
+                borderColor: '#FF6B6B',
+                color: '#FF6B6B',
+                '&:hover': {
+                  borderColor: '#FF8E53',
+                  backgroundColor: 'rgba(255, 107, 107, 0.04)',
+                },
+              }}
+            >
+              취소
+            </StyledButton>
+            <StyledButton
+              onClick={handleSubmitRequest}
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(135deg, #FF6B6B, #FF8E53)',
+                color: 'white',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #FF8E53, #FF6B6B)',
+                },
+              }}
+            >
               요청하기
-            </Button>
+            </StyledButton>
           </DialogActions>
-        </Dialog>
+        </StyledDialog>
       </Container>
     </Box>
   );

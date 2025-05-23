@@ -3,6 +3,7 @@ import { Container, Grid, Typography, Box, Button, CircularProgress, Tab, Tabs, 
 import { motion } from 'framer-motion';
 import { styled } from '@mui/material/styles';
 import { foodService } from '../services/foodService';
+import BoardService from '../services/BoardService';
 import FoodCard from '../components/FoodCard';
 import { useNavigate } from 'react-router-dom';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
@@ -58,6 +59,76 @@ const CategorySection = styled(Box)(({ theme }) => ({
   backdropFilter: 'blur(10px)',
 }));
 
+const ArticleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(8),
+  padding: theme.spacing(6),
+  background: '#f8f9fa',
+  borderRadius: '24px',
+}));
+
+const ArticleGrid = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(4, 1fr)',
+  gridTemplateRows: 'repeat(2, 260px)',
+  gap: theme.spacing(3),
+  [theme.breakpoints.down('md')]: {
+    gridTemplateColumns: '1fr',
+    gridTemplateRows: 'repeat(6, 200px)',
+  },
+}));
+
+const ArticleCardBig = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  borderRadius: '16px',
+  overflow: 'hidden',
+  cursor: 'pointer',
+  gridRow: '1 / 2',
+  height: '100%',
+  background: '#eee',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+  '&:hover .overlay': {
+    opacity: 1,
+  },
+}));
+
+const ArticleCardSmall = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  borderRadius: '16px',
+  overflow: 'hidden',
+  cursor: 'pointer',
+  gridRow: '2 / 3',
+  height: '100%',
+  background: '#eee',
+  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+  '&:hover .overlay': {
+    opacity: 1,
+  },
+}));
+
+const ArticleImageStyled = styled('img')({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
+});
+
+const ArticleOverlay = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  top: 0,
+  background: 'linear-gradient(0deg, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.1) 100%)',
+  color: 'white',
+  opacity: 0.85,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-end',
+  padding: theme.spacing(3),
+  transition: 'opacity 0.2s',
+  zIndex: 1,
+}));
+
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   marginBottom: theme.spacing(4),
   '& .MuiTabs-indicator': {
@@ -86,6 +157,7 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState(0);
+  const [articles, setArticles] = useState([]);
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -143,6 +215,21 @@ const Home = () => {
     };
 
     fetchAllCategoryFoods();
+  }, []);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const response = await BoardService.getBoards({ page: 0, size: 6, sortBy: 'latest' });
+        if (response.data && Array.isArray(response.data.content)) {
+          setArticles(response.data.content);
+        }
+      } catch (err) {
+        console.error('게시글 조회 실패:', err);
+      }
+    };
+
+    fetchArticles();
   }, []);
 
   const handleTabChange = (event, newValue) => {
@@ -289,6 +376,96 @@ const Home = () => {
             </CategorySection>
           )
         ))}
+
+        <ArticleSection>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 6,
+            gap: 2,
+          }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: 'Noto Sans KR',
+                fontWeight: 700,
+                textAlign: { xs: 'center', md: 'left' },
+                color: '#333',
+                flex: 1,
+              }}
+            >
+              Health Challenge Community
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontFamily: 'Noto Sans KR',
+                color: 'text.secondary',
+                textAlign: { xs: 'center', md: 'right' },
+                flex: 2,
+              }}
+            >
+              수많은 사용자들이 직접 경험한 식단, 레시피, 건강관리 노하우와 정보를 자유롭게 공유합니다.
+              <br></br>건강한 삶을 위한 다양한 팁과 챌린지, 그리고 서로의 이야기를 통해 함께 성장하는 공간입니다.
+            </Typography>
+          </Box>
+          <ArticleGrid>
+            {articles.slice(0, 6).map((article, idx) => {
+              let gridColumn, gridRow, CardComp;
+              if (idx === 0) {
+                gridColumn = '1 / 3'; gridRow = '1 / 2'; CardComp = ArticleCardBig;
+              } else if (idx === 1) {
+                gridColumn = '3 / 4'; gridRow = '1 / 2'; CardComp = ArticleCardSmall;
+              } else if (idx === 2) {
+                gridColumn = '1 / 2'; gridRow = '2 / 3'; CardComp = ArticleCardSmall;
+              } else if (idx === 3) {
+                gridColumn = '2 / 4'; gridRow = '2 / 3'; CardComp = ArticleCardBig;
+              } else if (idx === 4) {
+                gridColumn = '4 / 5'; gridRow = '1 / 2'; CardComp = ArticleCardSmall;
+              } else {
+                gridColumn = '4 / 5'; gridRow = '2 / 3'; CardComp = ArticleCardSmall;
+              }
+              return (
+                <CardComp
+                  key={article.boardId}
+                  style={{ gridColumn, gridRow }}
+                  onClick={() => navigate(`/board/${article.boardId}`)}
+                >
+                  <ArticleImageStyled
+                    src={article.imageUrl || 'https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&q=80&w=2000'}
+                    alt={article.title}
+                  />
+                  <ArticleOverlay className="overlay">
+                    <Typography variant={CardComp === ArticleCardBig ? 'h6' : 'subtitle1'} sx={{ fontWeight: 700, mb: 1, color: 'white', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                      {article.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'white', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
+                      {article.content?.slice(0, 30)}{article.content?.length > 30 ? '...' : ''}
+                    </Typography>
+                  </ArticleOverlay>
+                </CardComp>
+              );
+            })}
+          </ArticleGrid>
+          <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/Board')}
+              sx={{
+                borderColor: '#FF6B6B',
+                color: '#FF6B6B',
+                '&:hover': {
+                  borderColor: '#FF8E53',
+                  backgroundColor: 'rgba(255, 107, 107, 0.04)',
+                },
+              }}
+            >
+              더 많은 게시글 보기
+            </Button>
+          </Box>
+        </ArticleSection>
       </MotionBox>
     </Container>
   );

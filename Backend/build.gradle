@@ -54,6 +54,11 @@ dependencies {
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0' // 버전은 프로젝트 환경에 맞게 최신 확인
 
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	// LocalTime 타입 JSON으로 직렬화/역직렬화
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
 }
 
 tasks.named('test') {

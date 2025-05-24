@@ -63,4 +63,5 @@ public interface FoodService {
     List<Food> getRecommendedFoods(String categoryName); // 반환 타입 변경
 
 
+
 }

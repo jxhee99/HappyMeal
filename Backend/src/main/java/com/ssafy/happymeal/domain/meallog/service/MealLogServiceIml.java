@@ -157,15 +157,17 @@ public class MealLogServiceIml implements MealLogService{
         // 2. 요청 DTO에 이미지 URL이 제공되지 않았거나 빈 문자열("")인 경우:
         else {
             if(newFood != null) { // food가 변경되었다면 새 food의 이미지 url을 받음
-                if(!newFood.getImgUrl().equals(mealLog.getImgUrl()))
-                if(!Objects.equals(newFood.getImgUrl(), mealLog.getImgUrl())) {
-                    updateImgUrl = newFood.getImgUrl();
+                // food의 이미지가 없는 경우도 허용
+                String newFoodImgUrl = newFood.getImgUrl();
+                // 기존 이미지와 새 이미지가 다른 경우에만 업데이트
+                if(!Objects.equals(newFoodImgUrl, mealLog.getImgUrl())) {
+                    updateImgUrl = newFoodImgUrl; // null이어도 허용
                     isChanged = true;
                 }
             }
         }
 
-        mealLog.setImgUrl(updateImgUrl); // 최종으로 결정된 이미지url 저장
+        mealLog.setImgUrl(updateImgUrl); // 최종으로 결정된 이미지url 저장 (null 허용)
 
         // 5.  변경사항이 있을 경우에만 DB 업데이트
         if(isChanged) {

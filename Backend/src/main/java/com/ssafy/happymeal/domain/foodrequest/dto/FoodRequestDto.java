@@ -29,6 +29,7 @@ public class FoodRequestDto {
         private BigDecimal sugar;       // 당류 (필수)
         private BigDecimal protein;     // 단백질 (필수)
         private BigDecimal fat;         // 지방 (필수)
+        private String imgUrl;      // 음식 이미지 URL (선택)
 
         // 이 DTO를 FoodRequest 엔티티로 변환하는 메서드 (서비스 레이어에서 사용)
         // public FoodRequest toEntity(Long userId) {

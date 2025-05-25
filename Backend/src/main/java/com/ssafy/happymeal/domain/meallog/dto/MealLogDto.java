@@ -2,8 +2,10 @@ package com.ssafy.happymeal.domain.meallog.dto;
 
 import com.ssafy.happymeal.domain.meallog.entity.MealLog;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -12,6 +14,8 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 // 식단 기록 저장용 DTO
 public class MealLogDto {
     private String mealDate; // 타입 : LocalDate

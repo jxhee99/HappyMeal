@@ -25,6 +25,9 @@ public class MealLogRequestDto {
     @NotNull(message = "식사 유형을 선택해주세요.")
     private MealType mealType;
 
+    @NotNull(message = "식사 날짜를 입력해주세요.")
+    private String mealDate;
+
     private String imgUrl;
 
 }

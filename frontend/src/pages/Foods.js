@@ -10,14 +10,11 @@ import { useNavigate } from 'react-router-dom';
 
 const categories = [
   "전체",
-  "빵 및 과자류",
-  "찜류",
-  "구이류",
-  "젓갈류",
-  "생채·무침류",
-  "나물·숙채류",
-  "전·적 및 부침류",
-  "면 및 만두류"
+  "한식",
+  "중식",
+  "일식",
+  "양식",
+  "간식"
 ];
 
 const units = [
@@ -489,11 +486,11 @@ function Foods() {
                       select
                       variant="outlined"
                     >
-                      <MenuItem value="KOREAN">한식</MenuItem>
-                      <MenuItem value="CHINESE">중식</MenuItem>
-                      <MenuItem value="JAPANESE">일식</MenuItem>
-                      <MenuItem value="WESTERN">양식</MenuItem>
-                      <MenuItem value="SNACK">간식</MenuItem>
+                      <MenuItem value="한식">한식</MenuItem>
+                      <MenuItem value="중식">중식</MenuItem>
+                      <MenuItem value="일식">일식</MenuItem>
+                      <MenuItem value="양식">양식</MenuItem>
+                      <MenuItem value="간식">간식</MenuItem>
                     </StyledTextField>
                   </Grid>
                   <Grid item xs={6}>

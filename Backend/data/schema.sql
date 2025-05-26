@@ -28,7 +28,7 @@ CREATE TABLE Food (
                       sugar DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '당류 (g, 100g 기준)',
                       protein DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '단백질 (g, 100g 기준)',
                       fat DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '지방 (g, 100g 기준)',
-                      img_url VARCHAR(512) NULL COMMENT '음식 대표 이미지 URL', -- << 컬럼 추가됨
+                      img_url LONGTEXT NULL COMMENT '음식 대표 이미지 URL', -- VARCHAR(512)에서 LONGTEXT로 변경
                       food_code VARCHAR(100) NULL COMMENT '음식 고유 코드',
                       create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '정보 생성 일시',
                       update_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '정보 수정 일시'
@@ -47,7 +47,7 @@ CREATE TABLE FoodRequest (
                              sugar DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '당류 (g)', -- 필수 추가 제안
                              protein DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '단백질 (g)',
                              fat DECIMAL(10, 2) NOT NULL DEFAULT 0 COMMENT '지방 (g)',
-                            img_url VARCHAR(512) NULL COMMENT '음식 대표 이미지 URL', 
+                             img_url LONGTEXT NULL COMMENT '음식 대표 이미지 URL', -- VARCHAR(512)에서 LONGTEXT로 변경
                              is_registered ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING' COMMENT '등록 처리 여부',
     -- admin_comment TEXT NULL COMMENT '관리자 의견 또는 거절 사유 (선택적 추가)',
                              create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '요청 생성 일시',

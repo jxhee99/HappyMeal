@@ -58,9 +58,15 @@ export const foodService = {
     }
   },
 
-  getFoods: async ({ category = '', search = '' }) => {
+  getFoods: async ({ category = '', page = 0, size = 10 }) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/foods`);
+      const response = await axiosInstance.get('/foods', {
+        params: {
+          category,
+          page,
+          size
+        }
+      });
       console.log('음식 목록 응답:', response.data);
       return response.data;
     } catch (error) {

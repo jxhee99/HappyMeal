@@ -9,13 +9,13 @@ import java.util.Optional;
 
 @Mapper
 public interface FoodRequestDAO {
-    @Insert("INSERT INTO FoodRequest (user_id, name, category, serving_size, unit, calories, carbs, sugar, protein, fat, is_registered, create_at) " +
-            "VALUES (#{userId}, #{name}, #{category}, #{servingSize}, #{unit}, #{calories}, #{carbs}, #{sugar}, #{protein}, #{fat}, #{isRegistered}, NOW())")
+        @Insert("INSERT INTO FoodRequest (user_id, name, category, serving_size, unit, calories, carbs, sugar, protein, fat, img_url, is_registered, create_at) " +
+        "VALUES (#{userId}, #{name}, #{category}, #{servingSize}, #{unit}, #{calories}, #{carbs}, #{sugar}, #{protein}, #{fat}, #{imgUrl}, #{isRegistered}, NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "foodRequestId", keyColumn = "food_request_id")
     int save(FoodRequest foodRequest);
 
-    @Select("SELECT food_request_id, user_id, name, category, serving_size, unit, calories, carbs, sugar, protein, fat, is_registered, create_at " +
-            "FROM FoodRequest WHERE food_request_id = #{foodRequestId}")
+    @Select("SELECT food_request_id, user_id, name, category, serving_size, unit, calories, carbs, sugar, protein, fat, img_url, is_registered, create_at " +
+        "FROM FoodRequest WHERE food_request_id = #{foodRequestId}")
     Optional<FoodRequest> findById(@Param("foodRequestId") Long foodRequestId);
 
     @Select("SELECT food_request_id, user_id, name, category, serving_size, unit, calories, carbs, sugar, protein, fat, is_registered, create_at " +

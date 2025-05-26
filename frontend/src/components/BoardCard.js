@@ -52,8 +52,11 @@ const BoardCard = ({ post, categories, onClick }) => {
         component="img"
         sx={{ 
           width: 300,
+          height: 200,
+          maxHeight: 200,
           flexShrink: 0,
           objectFit: 'cover',
+          borderRadius: 2,
         }}
         image={mappedPost.imageUrl || "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=60"}
         alt={mappedPost.title}

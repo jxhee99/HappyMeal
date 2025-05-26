@@ -37,12 +37,20 @@ public class MealLogServiceIml implements MealLogService{
     public void addMealLog(Long userId, MealLogDto mealLogDto) {
         MealLog mealLog = new MealLog();
 
+        String imgUrl = mealLogDto.getImgUrl();
+
+        if(imgUrl==null) {
+            Food food = foodDAO.findById(mealLogDto.getFoodId())
+                    .orElseThrow(() -> new RuntimeException("foodId={"+mealLog.getFoodId()+"}와/과 일치하는 음식이 존재하지 않습니다."));
+            imgUrl = food.getImgUrl();
+        }
+
         mealLog.setUserId(userId);
         mealLog.setFoodId(mealLogDto.getFoodId());
         mealLog.setMealDate(LocalDate.parse(mealLogDto.getMealDate()));
         mealLog.setMealType(mealLogDto.getMealType());
         mealLog.setQuantity(mealLogDto.getQuantity());
-        mealLog.setImgUrl(mealLogDto.getImgUrl());
+        mealLog.setImgUrl(imgUrl);
 
         mealLogDAO.insertMealLog(mealLog);
     }

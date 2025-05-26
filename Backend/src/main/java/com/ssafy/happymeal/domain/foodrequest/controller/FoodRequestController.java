@@ -33,19 +33,37 @@ public class FoodRequestController {
     // @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<FoodRequestDto.Response> createFoodRequest(
             @RequestBody FoodRequestDto.Create createDto,
-            @AuthenticationPrincipal UserDetails userDetails) { // ⭐️ UserDetails 주입
+            @AuthenticationPrincipal UserDetails userDetails) {
 
         if (userDetails == null) {
             log.warn("FoodRequest 생성 시 인증된 사용자 정보를 찾을 수 없습니다.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        // UserDetails.getUsername()은 JwtTokenProvider에서 subject(userId 문자열)로 설정됨
-        Long userId = Long.parseLong(userDetails.getUsername()); // ⭐️ Long 타입으로 변환
 
-        log.info("음식 등록 요청 생성: userId={}, payload={}", userId, createDto);
+        Long userId = Long.parseLong(userDetails.getUsername());
 
-        FoodRequestDto.Response responseDto = foodRequestService.createFoodRequest(createDto, userId);
-        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
+        // 상세 로그 추가
+        log.info("음식 등록 요청 생성 시작: userId={}", userId);
+        log.info("요청 데이터: name={}, category={}, servingSize={}, unit={}, calories={}, carbs={}, sugar={}, protein={}, fat={}, imgUrl={}",
+                createDto.getName(),
+                createDto.getCategory(),
+                createDto.getServingSize(),
+                createDto.getUnit(),
+                createDto.getCalories(),
+                createDto.getCarbs(),
+                createDto.getSugar(),
+                createDto.getProtein(),
+                createDto.getFat(),
+                createDto.getImgUrl());
+
+        try {
+            FoodRequestDto.Response responseDto = foodRequestService.createFoodRequest(createDto, userId);
+            log.info("음식 등록 요청 생성 성공: foodRequestId={}", responseDto.getFoodRequestId());
+            return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
+        } catch (Exception e) {
+            log.error("음식 등록 요청 생성 실패: error={}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**

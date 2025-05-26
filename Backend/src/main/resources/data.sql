@@ -1,0 +1,1 @@
+ALTER TABLE FoodRequest MODIFY COLUMN img_url LONGTEXT; 

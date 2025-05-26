@@ -201,10 +201,11 @@ function Foods() {
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewUrl(reader.result);
+        const base64String = reader.result;
+        setPreviewUrl(base64String);
         setRequestForm(prev => ({
           ...prev,
-          imgUrl: reader.result
+          imgUrl: base64String
         }));
       };
       reader.readAsDataURL(file);
@@ -213,7 +214,6 @@ function Foods() {
 
   const handleSubmitRequest = async () => {
     try {
-      // JSON 데이터로 전송
       const requestData = {
         name: requestForm.name,
         category: requestForm.category,
@@ -227,15 +227,19 @@ function Foods() {
         imgUrl: requestForm.imgUrl
       };
 
+      console.log('전송할 데이터:', requestData);
+
       await foodRequestService.createFoodRequest(requestData);
       handleCloseRequestModal();
       setSelectedFile(null);
       setPreviewUrl('');
       alert('음식 추가 요청이 완료되었습니다.');
-      // 마이페이지의 음식 등록 요청 탭으로 리다이렉트 (탭 인덱스 3)
       navigate('/mypage?tab=3');
     } catch (error) {
       console.error('음식 추가 요청 실패:', error);
+      if (error.response) {
+        console.error('서버 응답:', error.response.data);
+      }
       alert('음식 추가 요청에 실패했습니다.');
     }
   };

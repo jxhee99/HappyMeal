@@ -4,10 +4,18 @@ export const foodRequestService = {
     // 음식 추가 요청 생성
     createFoodRequest: async (foodRequestData) => {
         try {
-            const response = await axiosInstance.post('/food-requests', foodRequestData);
+            console.log('요청 데이터:', foodRequestData);
+            const response = await axiosInstance.post('/food-requests', foodRequestData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
             return response.data;
         } catch (error) {
             console.error('음식 요청 생성 실패:', error);
+            if (error.response) {
+                console.error('서버 응답:', error.response.data);
+            }
             throw error;
         }
     },

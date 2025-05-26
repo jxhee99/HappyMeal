@@ -32,26 +32,40 @@ public class FoodRequestServiceImpl implements FoodRequestService {
     @Override
     @Transactional
     public FoodRequestDto.Response createFoodRequest(FoodRequestDto.Create createDto, Long userId) {
-        FoodRequest foodRequest = FoodRequest.builder()
-                .userId(userId)
-                .name(createDto.getName())
-                .category(createDto.getCategory())
-                .servingSize(createDto.getServingSize())
-                .unit(createDto.getUnit())
-                .calories(createDto.getCalories())
-                .carbs(createDto.getCarbs())
-                .sugar(createDto.getSugar())
-                .protein(createDto.getProtein())
-                .fat(createDto.getFat())
-                .isRegistered(FoodRequestStatus.PENDING)
-                // .createAt(LocalDateTime.now()) // DAO에서 NOW() 사용 시 생략 가능
-                .build();
+        log.info("FoodRequest 생성 시작: userId={}, createDto={}", userId, createDto);
 
-        foodRequestDAO.save(foodRequest);
-        // 저장 후 ID가 채워진 객체를 다시 조회하거나, createAt 등 DB 기본값을 포함하여 정확한 상태로 DTO 변환
-        FoodRequest savedRequest = foodRequestDAO.findById(foodRequest.getFoodRequestId())
-                .orElseThrow(() -> new EntityNotFoundException("Failed to retrieve saved FoodRequest with id: " + foodRequest.getFoodRequestId())); // 방어 코드
-        return convertToResponseDto(savedRequest);
+        try {
+            FoodRequest foodRequest = FoodRequest.builder()
+                    .userId(userId)
+                    .name(createDto.getName())
+                    .category(createDto.getCategory())
+                    .servingSize(createDto.getServingSize())
+                    .unit(createDto.getUnit())
+                    .calories(createDto.getCalories())
+                    .carbs(createDto.getCarbs())
+                    .sugar(createDto.getSugar())
+                    .protein(createDto.getProtein())
+                    .fat(createDto.getFat())
+                    .imgUrl(createDto.getImgUrl())
+                    .isRegistered(FoodRequestStatus.PENDING)
+                    .build();
+
+            log.info("FoodRequest 엔티티 생성 완료: {}", foodRequest);
+
+            foodRequestDAO.save(foodRequest);
+            log.info("FoodRequest DB 저장 완료: foodRequestId={}", foodRequest.getFoodRequestId());
+
+            FoodRequest savedRequest = foodRequestDAO.findById(foodRequest.getFoodRequestId())
+                    .orElseThrow(() -> new EntityNotFoundException("Failed to retrieve saved FoodRequest with id: " + foodRequest.getFoodRequestId()));
+
+            FoodRequestDto.Response responseDto = convertToResponseDto(savedRequest);
+            log.info("FoodRequest 응답 DTO 생성 완료: {}", responseDto);
+
+            return responseDto;
+        } catch (Exception e) {
+            log.error("FoodRequest 생성 중 오류 발생: error={}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -88,14 +102,21 @@ public class FoodRequestServiceImpl implements FoodRequestService {
     @Override
     @Transactional
     public FoodRequestDto.Response updateFoodRequestStatus(Long foodRequestId, FoodRequestDto.UpdateStatus updateStatusDto) {
+        log.info("FoodRequest 상태 업데이트 시작: foodRequestId={}, newStatus={}", foodRequestId, updateStatusDto.getIsRegistered());
+
         FoodRequest foodRequest = foodRequestDAO.findById(foodRequestId)
                 .orElseThrow(() -> new EntityNotFoundException("FoodRequest not found with id: " + foodRequestId + " for status update."));
 
+        log.info("기존 FoodRequest 조회 완료: {}", foodRequest);
+
         // 상태 업데이트
         foodRequestDAO.updateStatus(foodRequestId, updateStatusDto.getIsRegistered());
+        log.info("FoodRequest 상태 업데이트 완료: foodRequestId={}, newStatus={}", foodRequestId, updateStatusDto.getIsRegistered());
 
         // 승인된 경우 Food로 등록
         if (updateStatusDto.getIsRegistered() == FoodRequestStatus.APPROVED) {
+            log.info("Food 등록 시작: foodRequestId={}", foodRequestId);
+            
             Food food = Food.builder()
                     .name(foodRequest.getName())
                     .category(foodRequest.getCategory())
@@ -109,17 +130,22 @@ public class FoodRequestServiceImpl implements FoodRequestService {
                     .imgUrl(foodRequest.getImgUrl())
                     .build();
 
+            log.info("Food 엔티티 생성 완료: {}", food);
+
             try {
                 foodService.addFood(food);
-                log.info("FoodRequest 승인 및 Food 등록 완료: foodRequestId={}, foodName={}", foodRequestId, food.getName());
+                log.info("Food 등록 완료: foodRequestId={}, foodName={}", foodRequestId, food.getName());
             } catch (Exception e) {
-                log.error("Food 등록 실패: foodRequestId={}, error={}", foodRequestId, e.getMessage());
+                log.error("Food 등록 실패: foodRequestId={}, error={}", foodRequestId, e.getMessage(), e);
                 throw new RuntimeException("Food 등록 중 오류가 발생했습니다.", e);
             }
         }
 
         FoodRequest updatedFoodRequest = foodRequestDAO.findById(foodRequestId)
                 .orElseThrow(() -> new EntityNotFoundException("FoodRequest not found with id: " + foodRequestId + " (after status update attempt)"));
+        
+        log.info("업데이트된 FoodRequest 조회 완료: {}", updatedFoodRequest);
+        
         return convertToResponseDto(updatedFoodRequest);
     }
 
@@ -136,6 +162,7 @@ public class FoodRequestServiceImpl implements FoodRequestService {
                 .sugar(foodRequest.getSugar())
                 .protein(foodRequest.getProtein())
                 .fat(foodRequest.getFat())
+                .imgUrl(foodRequest.getImgUrl())
                 .isRegistered(foodRequest.getIsRegistered())
                 .createAt(foodRequest.getCreateAt())
                 .build();

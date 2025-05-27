@@ -212,9 +212,33 @@ const MyPage = () => {
         });
         await fetchProfile();
         setIsEditing(false);
+        setError(null);
+        setError({
+          type: 'success',
+          message: '닉네임이 성공적으로 변경되었습니다.'
+        });
       } catch (err) {
-        setError('닉네임 수정에 실패했습니다.');
-        console.error('닉네임 수정 실패:', err);
+        console.error('닉네임 수정 실패:', err.response?.data);
+        
+        const errorMessage = err.response?.data?.message || '';
+        const validationErrors = err.response?.data?.errors || [];
+        
+        if (errorMessage.includes('이미 사용 중인 닉네임입니다')) {
+          setError({
+            type: 'error',
+            message: '중복되는 닉네임입니다.'
+          });
+        } else if (validationErrors.some(error => error.includes('닉네임은 한글, 영문, 숫자, 밑줄(_)만 사용 가능합니다'))) {
+          setError({
+            type: 'error',
+            message: '닉네임은 한글, 영문, 숫자, 밑줄(_)만 사용 가능합니다.'
+          });
+        } else {
+          setError({
+            type: 'error',
+            message: '닉네임은 한글, 영문, 숫자, 밑줄(_)만 사용 가능합니다.'
+          });
+        }
       }
     } else {
       setIsEditing(true);
@@ -244,8 +268,12 @@ const MyPage = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+        <Alert 
+          severity={error.type || 'error'} 
+          sx={{ mb: 2 }}
+          onClose={() => setError(null)}
+        >
+          {error.message}
         </Alert>
       )}
       

@@ -142,10 +142,9 @@ const BoardDetail = () => {
       setLiked(response.data.liked);
       
       // 좋아요 수 업데이트
-      const likesCountResponse = await BoardService.getLikesCount(id);
       setPost(prev => ({
         ...prev,
-        likesCount: likesCountResponse.data
+        likesCount: response.data.likesCount
       }));
     } catch (error) {
       console.error('좋아요 처리 실패:', error);

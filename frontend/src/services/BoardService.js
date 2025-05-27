@@ -144,17 +144,6 @@ const BoardService = {
     }
   },
 
-  // 좋아요 수 조회
-  getLikesCount: async (boardId) => {
-    try {
-      const response = await axiosInstance.get(`/boards/${boardId}/likes/count`);
-      return response;
-    } catch (error) {
-      console.error('좋아요 수 조회 API 호출 실패:', error);
-      throw error;
-    }
-  },
-
   // 댓글 작성
   createComment: async (boardId, commentData) => {
     try {

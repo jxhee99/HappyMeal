@@ -218,17 +218,16 @@ const RecentMeals = ({ selectedDate, mealLogs, onMealLogAdded }) => {
     if (!file) return;
 
     try {
-      setUploadingImage(true);
-      const result = await imageService.uploadImage(file);
+      // 이미지 URL 생성
+      const imageUrl = URL.createObjectURL(file);
+      
       setNewMealLog(prev => ({
         ...prev,
-        imgUrl: result.imageUrl
+        imgUrl: imageUrl
       }));
     } catch (error) {
-      console.error('이미지 업로드 실패:', error);
-      alert('이미지 업로드에 실패했습니다.');
-    } finally {
-      setUploadingImage(false);
+      console.error('이미지 처리 실패:', error);
+      alert('이미지 처리에 실패했습니다.');
     }
   };
 

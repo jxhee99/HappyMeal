@@ -161,8 +161,11 @@ const Board = () => {
                   select
                   value={searchType}
                   onChange={(e) => setSearchType(e.target.value)}
-                  sx={{ width: 120 }}
-                  size="small"
+                  sx={{ width: 140, height: '56px' }}
+                  size="medium"
+                  InputProps={{
+                    sx: { height: '56px', alignItems: 'center' },
+                  }}
                 >
                   <MenuItem value="title">제목</MenuItem>
                   <MenuItem value="author">작성자</MenuItem>
@@ -174,6 +177,7 @@ const Board = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  size="medium"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -187,6 +191,7 @@ const Board = () => {
                         </IconButton>
                       </InputAdornment>
                     ),
+                    sx: { height: '56px', alignItems: 'center' },
                   }}
                 />
               </Box>
